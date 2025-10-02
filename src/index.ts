@@ -1,19 +1,12 @@
 import "dotenv/config";
 import { loadPromptFromTemplate } from "./prompts/loader.js";
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { zodToJsonSchema } from "zod-to-json-schema";
-import {
-  CallToolRequest,
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-  InitializedNotificationSchema,
-} from "@modelcontextprotocol/sdk/types.js";
+import { InitializedNotificationSchema, type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import type { ZodRawShape } from "zod";
 import { setGlobalServer } from "./utils/paths.js";
 import { createWebServer } from "./web/webServer.js";
 
-// å°Žå…¥æ‰€æœ‰å·¥å…·å‡½æ•¸å’Œ schema
-// Import all tool functions and schemas
 import {
   planTask,
   planTaskSchema,
@@ -21,12 +14,10 @@ import {
   analyzeTaskSchema,
   reflectTask,
   reflectTaskSchema,
-  splitTasks,
-  splitTasksSchema,
   splitTasksRaw,
   splitTasksRawSchema,
-  listTasksSchema,
   listTasks,
+  listTasksSchema,
   executeTask,
   executeTaskSchema,
   verifyTask,
@@ -44,331 +35,172 @@ import {
   processThought,
   processThoughtSchema,
   initProjectRules,
-  initProjectRulesSchema,
   researchMode,
   researchModeSchema,
 } from "./tools/index.js";
 
+type ToolInvocation = CallToolResult | Promise<CallToolResult>;
+
+type ToolDefinition =
+  | {
+      name: string;
+      template: string;
+      schema: ZodRawShape;
+      invoke: (args: unknown) => ToolInvocation;
+    }
+  | {
+      name: string;
+      template: string;
+      invoke: () => ToolInvocation;
+    };
+
+const TOOL_DEFINITIONS: ToolDefinition[] = [
+  {
+    name: "plan_task",
+    template: "toolsDescription/planTask.md",
+    schema: planTaskSchema.shape,
+    invoke: (args) => planTask(args as unknown as Parameters<typeof planTask>[0]),
+  },
+  {
+    name: "analyze_task",
+    template: "toolsDescription/analyzeTask.md",
+    schema: analyzeTaskSchema.shape,
+    invoke: (args) => analyzeTask(args as unknown as Parameters<typeof analyzeTask>[0]),
+  },
+  {
+    name: "reflect_task",
+    template: "toolsDescription/reflectTask.md",
+    schema: reflectTaskSchema.shape,
+    invoke: (args) => reflectTask(args as unknown as Parameters<typeof reflectTask>[0]),
+  },
+  {
+    name: "split_tasks",
+    template: "toolsDescription/splitTasks.md",
+    schema: splitTasksRawSchema.shape,
+    invoke: (args) => splitTasksRaw(args as unknown as Parameters<typeof splitTasksRaw>[0]),
+  },
+  {
+    name: "list_tasks",
+    template: "toolsDescription/listTasks.md",
+    schema: listTasksSchema.shape,
+    invoke: (args) => listTasks(args as unknown as Parameters<typeof listTasks>[0]),
+  },
+  {
+    name: "execute_task",
+    template: "toolsDescription/executeTask.md",
+    schema: executeTaskSchema.shape,
+    invoke: (args) => executeTask(args as unknown as Parameters<typeof executeTask>[0]),
+  },
+  {
+    name: "verify_task",
+    template: "toolsDescription/verifyTask.md",
+    schema: verifyTaskSchema.shape,
+    invoke: (args) => verifyTask(args as unknown as Parameters<typeof verifyTask>[0]),
+  },
+  {
+    name: "delete_task",
+    template: "toolsDescription/deleteTask.md",
+    schema: deleteTaskSchema.shape,
+    invoke: (args) => deleteTask(args as unknown as Parameters<typeof deleteTask>[0]),
+  },
+  {
+    name: "clear_all_tasks",
+    template: "toolsDescription/clearAllTasks.md",
+    schema: clearAllTasksSchema.shape,
+    invoke: (args) => clearAllTasks(args as unknown as Parameters<typeof clearAllTasks>[0]),
+  },
+  {
+    name: "update_task",
+    template: "toolsDescription/updateTask.md",
+    schema: updateTaskContentSchema.shape,
+    invoke: (args) =>
+      updateTaskContent(args as unknown as Parameters<typeof updateTaskContent>[0]),
+  },
+  {
+    name: "query_task",
+    template: "toolsDescription/queryTask.md",
+    schema: queryTaskSchema.shape,
+    invoke: (args) => queryTask(args as unknown as Parameters<typeof queryTask>[0]),
+  },
+  {
+    name: "get_task_detail",
+    template: "toolsDescription/getTaskDetail.md",
+    schema: getTaskDetailSchema.shape,
+    invoke: (args) => getTaskDetail(args as unknown as Parameters<typeof getTaskDetail>[0]),
+  },
+  {
+    name: "process_thought",
+    template: "toolsDescription/processThought.md",
+    schema: processThoughtSchema.shape,
+    invoke: (args) => processThought(args as unknown as Parameters<typeof processThought>[0]),
+  },
+  {
+    name: "init_project_rules",
+    template: "toolsDescription/initProjectRules.md",
+    invoke: () => initProjectRules(),
+  },
+  {
+    name: "research_mode",
+    template: "toolsDescription/researchMode.md",
+    schema: researchModeSchema.shape,
+    invoke: (args) => researchMode(args as unknown as Parameters<typeof researchMode>[0]),
+  },
+];
+
+async function registerTools(server: McpServer): Promise<void> {
+  for (const tool of TOOL_DEFINITIONS) {
+    const description = await loadPromptFromTemplate(tool.template);
+
+    if ("schema" in tool) {
+      server.tool(tool.name, description, tool.schema, async (args) => {
+        return await Promise.resolve(tool.invoke(args));
+      });
+    } else {
+      server.tool(tool.name, description, async () => {
+        return await Promise.resolve(tool.invoke());
+      });
+    }
+  }
+}
+
 async function main() {
   try {
     const ENABLE_GUI = process.env.ENABLE_GUI === "true";
-    let webServerInstance: Awaited<ReturnType<typeof createWebServer>> | null =
-      null;
+    let webServerInstance: Awaited<ReturnType<typeof createWebServer>> | null = null;
 
-    // å‰µå»ºMCPæœå‹™å™¨
-    // Create MCP server
-    const server = new Server(
+    const server = new McpServer(
       {
         name: "Shrimp Task Manager",
         version: "1.0.0",
       },
       {
         capabilities: {
-          tools: {},
+          tools: {
+            listChanged: false,
+          },
           logging: {},
         },
       }
     );
 
-    // è¨­ç½®å…¨å±€ server å¯¦ä¾‹
-    // Set global server instance
-    setGlobalServer(server);
+    setGlobalServer(server.server);
 
-    // ç›£è½ initialized é€šçŸ¥ä¾†å•Ÿå‹• web æœå‹™å™¨
-    // Listen for initialized notification to start web server
+    await registerTools(server);
+
     if (ENABLE_GUI) {
-      server.setNotificationHandler(InitializedNotificationSchema, async () => {
-        try {
-          webServerInstance = await createWebServer();
-          await webServerInstance.startServer();
-        } catch (error) {}
-      });
+      server.server.setNotificationHandler(
+        InitializedNotificationSchema,
+        async () => {
+          try {
+            webServerInstance = await createWebServer();
+            await webServerInstance.startServer();
+          } catch (error) {
+            // MCP »·¾³ÖÐ½ö¼ÇÂ¼£¬±ÜÃâ´ò¶ÏÖ÷Á÷³Ì
+          }
+        }
+      );
     }
 
-    server.setRequestHandler(ListToolsRequestSchema, async () => {
-      return {
-        tools: [
-          {
-            name: "plan_task",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/planTask.md"
-            ),
-            inputSchema: zodToJsonSchema(planTaskSchema),
-          },
-          {
-            name: "analyze_task",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/analyzeTask.md"
-            ),
-            inputSchema: zodToJsonSchema(analyzeTaskSchema),
-          },
-          {
-            name: "reflect_task",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/reflectTask.md"
-            ),
-            inputSchema: zodToJsonSchema(reflectTaskSchema),
-          },
-          {
-            name: "split_tasks",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/splitTasks.md"
-            ),
-            inputSchema: zodToJsonSchema(splitTasksRawSchema),
-          },
-          {
-            name: "list_tasks",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/listTasks.md"
-            ),
-            inputSchema: zodToJsonSchema(listTasksSchema),
-          },
-          {
-            name: "execute_task",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/executeTask.md"
-            ),
-            inputSchema: zodToJsonSchema(executeTaskSchema),
-          },
-          {
-            name: "verify_task",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/verifyTask.md"
-            ),
-            inputSchema: zodToJsonSchema(verifyTaskSchema),
-          },
-          {
-            name: "delete_task",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/deleteTask.md"
-            ),
-            inputSchema: zodToJsonSchema(deleteTaskSchema),
-          },
-          {
-            name: "clear_all_tasks",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/clearAllTasks.md"
-            ),
-            inputSchema: zodToJsonSchema(clearAllTasksSchema),
-          },
-          {
-            name: "update_task",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/updateTask.md"
-            ),
-            inputSchema: zodToJsonSchema(updateTaskContentSchema),
-          },
-          {
-            name: "query_task",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/queryTask.md"
-            ),
-            inputSchema: zodToJsonSchema(queryTaskSchema),
-          },
-          {
-            name: "get_task_detail",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/getTaskDetail.md"
-            ),
-            inputSchema: zodToJsonSchema(getTaskDetailSchema),
-          },
-          {
-            name: "process_thought",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/processThought.md"
-            ),
-            inputSchema: zodToJsonSchema(processThoughtSchema),
-          },
-          {
-            name: "init_project_rules",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/initProjectRules.md"
-            ),
-            inputSchema: zodToJsonSchema(initProjectRulesSchema),
-          },
-          {
-            name: "research_mode",
-            description: await loadPromptFromTemplate(
-              "toolsDescription/researchMode.md"
-            ),
-            inputSchema: zodToJsonSchema(researchModeSchema),
-          },
-        ],
-      };
-    });
-
-    server.setRequestHandler(
-      CallToolRequestSchema,
-      async (request: CallToolRequest) => {
-        try {
-          if (!request.params.arguments) {
-            throw new Error("No arguments provided");
-          }
-
-          let parsedArgs;
-          switch (request.params.name) {
-            case "plan_task":
-              parsedArgs = await planTaskSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await planTask(parsedArgs.data);
-            case "analyze_task":
-              parsedArgs = await analyzeTaskSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await analyzeTask(parsedArgs.data);
-            case "reflect_task":
-              parsedArgs = await reflectTaskSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await reflectTask(parsedArgs.data);
-            case "split_tasks":
-              parsedArgs = await splitTasksRawSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await splitTasksRaw(parsedArgs.data);
-            case "list_tasks":
-              parsedArgs = await listTasksSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await listTasks(parsedArgs.data);
-            case "execute_task":
-              parsedArgs = await executeTaskSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await executeTask(parsedArgs.data);
-            case "verify_task":
-              parsedArgs = await verifyTaskSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await verifyTask(parsedArgs.data);
-            case "delete_task":
-              parsedArgs = await deleteTaskSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await deleteTask(parsedArgs.data);
-            case "clear_all_tasks":
-              parsedArgs = await clearAllTasksSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await clearAllTasks(parsedArgs.data);
-            case "update_task":
-              parsedArgs = await updateTaskContentSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await updateTaskContent(parsedArgs.data);
-            case "query_task":
-              parsedArgs = await queryTaskSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await queryTask(parsedArgs.data);
-            case "get_task_detail":
-              parsedArgs = await getTaskDetailSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await getTaskDetail(parsedArgs.data);
-            case "process_thought":
-              parsedArgs = await processThoughtSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await processThought(parsedArgs.data);
-            case "init_project_rules":
-              return await initProjectRules();
-            case "research_mode":
-              parsedArgs = await researchModeSchema.safeParseAsync(
-                request.params.arguments
-              );
-              if (!parsedArgs.success) {
-                throw new Error(
-                  `Invalid arguments for tool ${request.params.name}: ${parsedArgs.error.message}`
-                );
-              }
-              return await researchMode(parsedArgs.data);
-            default:
-              throw new Error(`Tool ${request.params.name} does not exist`);
-          }
-        } catch (error) {
-          const errorMsg =
-            error instanceof Error ? error.message : String(error);
-          return {
-            content: [
-              {
-                type: "text",
-                text: `Error occurred: ${errorMsg} \n Please try correcting the error and calling the tool again`,
-              },
-            ],
-          };
-        }
-      }
-    );
-
-    // å»ºç«‹é€£æŽ¥
-    // Establish connection
     const transport = new StdioServerTransport();
     await server.connect(transport);
   } catch (error) {
