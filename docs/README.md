@@ -27,6 +27,7 @@
 ### Developer Resources
 - [API Reference](api.md) - Complete API documentation
 - [Prompt Customization](en/prompt-customization.md) - Customize AI prompts
+- [提示词定制](zh-CN/prompt-customization.md) - 中文指南
 - [SDK Usage](sdk.md) - Integrate with your code
 
 ### Advanced Topics
@@ -36,17 +37,10 @@
 
 ## 🌐 Internationalization
 
-Documentation is available in multiple languages:
+Documentation is available in two languages:
 
-- [🇩🇪 Deutsch](de/README.md)
-- [🇪🇸 Español](es/README.md)
-- [🇫🇷 Français](fr/README.md)
-- [🇮🇹 Italiano](it/README.md)
-- [🇰🇷 한국어](ko/README.md)
-- [🇧🇷 Português](pt/README.md)
-- [🇷🇺 Русский](ru/README.md)
-- [🇨🇳 中文](zh/README.md)
-- [🇮🇳 हिन्दी](hi/README.md)
+- [🇺🇸 English](../README.md)
+- [🇨🇳 中文](zh-CN/README.md)
 
 ## 📖 How to Use This Documentation
 

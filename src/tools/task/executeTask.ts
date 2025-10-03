@@ -10,16 +10,16 @@ import { TaskStatus, Task } from "../../types/index.js";
 import { getExecuteTaskPrompt } from "../../prompts/index.js";
 import { loadTaskRelatedFiles } from "../../utils/fileLoader.js";
 
-// 執行任務工具
+// 运行任务工具
 // Execute task tool
 export const executeTaskSchema = z.object({
   taskId: z
     .string()
     .regex(UUID_V4_REGEX, {
-      message: "任務ID格式無效，請提供有效的UUID v4格式",
+      message: "任务ID格式无效，请提供有效的UUID v4格式",
       // Task ID format is invalid, please provide a valid UUID v4 format
     })
-    .describe("待執行任務的唯一標識符，必須是系統中存在的有效任務ID"),
+    .describe("待运行任务的唯一标识符，必须是系统中存在的有效任务ID"),
     // Unique identifier of the task to be executed, must be a valid task ID that exists in the system
 });
 
@@ -27,7 +27,7 @@ export async function executeTask({
   taskId,
 }: z.infer<typeof executeTaskSchema>) {
   try {
-    // 檢查任務是否存在
+    // 检查任务是否存在
     // Check if task exists
     const task = await getTaskById(taskId);
     if (!task) {
@@ -35,72 +35,72 @@ export async function executeTask({
         content: [
           {
             type: "text" as const,
-            text: `找不到ID為 \`${taskId}\` 的任務。請確認ID是否正確。`,
+            text: `找不到ID为 \`${taskId}\` 的任务。请确认ID是否正确。`,
             // Cannot find task with ID `${taskId}`. Please confirm if the ID is correct.
           },
         ],
       };
     }
 
-    // 檢查任務是否可以執行（依賴任務都已完成）
+    // 检查任务是否可以运行（依赖任务都已完成）
     // Check if task can be executed (all dependency tasks are completed)
     const executionCheck = await canExecuteTask(taskId);
     if (!executionCheck.canExecute) {
       const blockedByTasksText =
         executionCheck.blockedBy && executionCheck.blockedBy.length > 0
-          ? `被以下未完成的依賴任務阻擋: ${executionCheck.blockedBy.join(", ")}`
+          ? `被以下未完成的依赖任务阻挡: ${executionCheck.blockedBy.join(", ")}`
           // Blocked by the following incomplete dependency tasks: ${executionCheck.blockedBy.join(", ")}
-          : "無法確定阻擋原因";
+          : "无法确定阻挡原因";
           // Unable to determine blocking reason
 
       return {
         content: [
           {
             type: "text" as const,
-            text: `任務 "${task.name}" (ID: \`${taskId}\`) 目前無法執行。${blockedByTasksText}`,
+            text: `任务 "${task.name}" (ID: \`${taskId}\`) 目前无法运行。${blockedByTasksText}`,
             // Task "${task.name}" (ID: `${taskId}`) cannot be executed currently. ${blockedByTasksText}
           },
         ],
       };
     }
 
-    // 如果任務已經標記為「進行中」，提示用戶
+    // 如果任务已经标记为「进行中」，提示用户
     // If task is already marked as "in progress", prompt user
     if (task.status === TaskStatus.IN_PROGRESS) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `任務 "${task.name}" (ID: \`${taskId}\`) 已經處於進行中狀態。`,
+            text: `任务 "${task.name}" (ID: \`${taskId}\`) 已经处于进行中状态。`,
             // Task "${task.name}" (ID: `${taskId}`) is already in progress status.
           },
         ],
       };
     }
 
-    // 如果任務已經標記為「已完成」，提示用戶
+    // 如果任务已经标记为「已完成」，提示用户
     // If task is already marked as "completed", prompt user
     if (task.status === TaskStatus.COMPLETED) {
       return {
         content: [
           {
             type: "text" as const,
-            text: `任務 "${task.name}" (ID: \`${taskId}\`) 已經標記為完成。如需重新執行，請先使用 delete_task 刪除該任務並重新創建。`,
+            text: `任务 "${task.name}" (ID: \`${taskId}\`) 已经标记为完成。如需重新运行，请先使用 delete_task 删除该任务并重新创建。`,
             // Task "${task.name}" (ID: `${taskId}`) is already marked as completed. If you need to re-execute, please first use delete_task to delete the task and recreate it.
           },
         ],
       };
     }
 
-    // 更新任務狀態為「進行中」
+    // 更新任务状态为「进行中」
     // Update task status to "in progress"
     await updateTaskStatus(taskId, TaskStatus.IN_PROGRESS);
 
-    // 評估任務複雜度
+    // 评估任务复杂度
     // Assess task complexity
     const complexityResult = await assessTaskComplexity(taskId);
 
-    // 將複雜度結果轉換為適當的格式
+    // 将复杂度结果转换为适当的格式
     // Convert complexity results to appropriate format
     const complexityAssessment = complexityResult
       ? {
@@ -113,7 +113,7 @@ export async function executeTask({
         }
       : undefined;
 
-    // 獲取依賴任務，用於顯示完成摘要
+    // 获取依赖任务，用于显示完成摘要
     // Get dependency tasks for displaying completion summary
     const dependencyTasks: Task[] = [];
     if (task.dependencies && task.dependencies.length > 0) {
@@ -125,7 +125,7 @@ export async function executeTask({
       }
     }
 
-    // 加載任務相關的文件內容
+    // 加载任务相关的文档内容
     // Load task-related file content
     let relatedFilesSummary = "";
     if (task.relatedFiles && task.relatedFiles.length > 0) {
@@ -143,7 +143,7 @@ export async function executeTask({
       }
     }
 
-    // 使用prompt生成器獲取最終prompt
+    // 使用prompt生成器获取最终prompt
     // Use prompt generator to get final prompt
     const prompt = await getExecuteTaskPrompt({
       task,
@@ -165,7 +165,7 @@ export async function executeTask({
       content: [
         {
           type: "text" as const,
-          text: `執行任務時發生錯誤: ${
+          text: `运行任务时发生错误: ${
             error instanceof Error ? error.message : String(error)
           }`,
           // Error occurred while executing task: ${error instanceof Error ? error.message : String(error)}

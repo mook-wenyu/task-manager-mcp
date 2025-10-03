@@ -1,6 +1,6 @@
 /**
  * getTaskDetail prompt 生成器
- * 負責將模板和參數組合成最終的 prompt
+ * 负责将模板和参数组合成最终的 prompt
  * getTaskDetail prompt generator
  * Responsible for combining templates and parameters into the final prompt
  */
@@ -13,7 +13,7 @@ import {
 import { Task } from "../../types/index.js";
 
 /**
- * getTaskDetail prompt 參數介面
+ * getTaskDetail prompt 参数接口
  * getTaskDetail prompt parameter interface
  */
 export interface GetTaskDetailPromptParams {
@@ -23,9 +23,9 @@ export interface GetTaskDetailPromptParams {
 }
 
 /**
- * 獲取 getTaskDetail 的完整 prompt
+ * 获取 getTaskDetail 的完整 prompt
  * Get the complete prompt for getTaskDetail
- * @param params prompt 參數
+ * @param params prompt 参数
  * @param params prompt parameters
  * @returns 生成的 prompt
  * @returns generated prompt
@@ -35,7 +35,7 @@ export async function getGetTaskDetailPrompt(
 ): Promise<string> {
   const { taskId, task, error } = params;
 
-  // 如果有錯誤，顯示錯誤訊息
+  // 如果有错误，显示错误消息
   // If there is an error, display error message
   if (error) {
     const errorTemplate = await loadPromptFromTemplate(
@@ -46,7 +46,7 @@ export async function getGetTaskDetailPrompt(
     });
   }
 
-  // 如果找不到任務，顯示找不到任務的訊息
+  // 如果找不到任务，显示找不到任务的消息
   // If task cannot be found, display task not found message
   if (!task) {
     const notFoundTemplate = await loadPromptFromTemplate(
@@ -122,15 +122,15 @@ export async function getGetTaskDetailPrompt(
       "getTaskDetail/complatedSummary.md"
     );
     complatedSummaryPrompt = generatePrompt(complatedSummaryTemplate, {
-      completedTime: new Date(task.completedAt).toLocaleString("zh-TW"),
-      summary: task.summary || "*無完成摘要*",
+      completedTime: new Date(task.completedAt).toLocaleString("zh-CN"),
+      summary: task.summary || "*无完成摘要*",
       // "*No completion summary*"
     });
   }
 
   const indexTemplate = await loadPromptFromTemplate("getTaskDetail/index.md");
 
-  // 開始構建基本 prompt
+  // 开始构建基本 prompt
   // Start building the basic prompt
   let prompt = generatePrompt(indexTemplate, {
     name: task.name,
@@ -142,12 +142,12 @@ export async function getGetTaskDetailPrompt(
     implementationGuideTemplate: implementationGuidePrompt,
     verificationCriteriaTemplate: verificationCriteriaPrompt,
     relatedFilesTemplate: relatedFilesPrompt,
-    createdTime: new Date(task.createdAt).toLocaleString("zh-TW"),
-    updatedTime: new Date(task.updatedAt).toLocaleString("zh-TW"),
+    createdTime: new Date(task.createdAt).toLocaleString("zh-CN"),
+    updatedTime: new Date(task.updatedAt).toLocaleString("zh-CN"),
     complatedSummaryTemplate: complatedSummaryPrompt,
   });
 
-  // 載入可能的自定義 prompt
+  // 加载可能的自定义 prompt
   // Load possible custom prompt
   return loadPrompt(prompt, "GET_TASK_DETAIL");
 }

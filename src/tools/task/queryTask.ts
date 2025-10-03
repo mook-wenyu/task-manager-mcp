@@ -2,22 +2,22 @@ import { z } from "zod";
 import { searchTasksWithCommand } from "../../models/taskModel.js";
 import { getQueryTaskPrompt } from "../../prompts/index.js";
 
-// 查詢任務工具
+// 查找任务工具
 // Query task tool
 export const queryTaskSchema = z.object({
   query: z
     .string()
     .min(1, {
-      message: "查詢內容不能為空，請提供任務ID或搜尋關鍵字",
+      message: "查找内容不能为空，请提供任务ID或搜索关键字",
       // Query content cannot be empty, please provide task ID or search keywords
     })
-    .describe("搜尋查詢文字，可以是任務ID或多個關鍵字（空格分隔）"),
+    .describe("搜索查找文本，可以是任务ID或多个关键字（空格分隔）"),
     // Search query text, can be task ID or multiple keywords (space-separated)
   isId: z
     .boolean()
     .optional()
     .default(false)
-    .describe("指定是否為ID查詢模式，默認為否（關鍵字模式）"),
+    .describe("指定是否为ID查找模式，默认为否（关键字模式）"),
     // Specify whether it is ID query mode, default is false (keyword mode)
   page: z
     .number()
@@ -25,7 +25,7 @@ export const queryTaskSchema = z.object({
     .positive()
     .optional()
     .default(1)
-    .describe("分頁頁碼，默認為第1頁"),
+    .describe("分页页码，默认为第1页"),
     // Page number, default is page 1
   pageSize: z
     .number()
@@ -35,7 +35,7 @@ export const queryTaskSchema = z.object({
     .max(20)
     .optional()
     .default(5)
-    .describe("每頁顯示的任務數量，默認為5筆，最大20筆"),
+    .describe("每页显示的任务数量，默认为5笔，最大20笔"),
     // Number of tasks displayed per page, default is 5, maximum is 20
 });
 
@@ -46,11 +46,11 @@ export async function queryTask({
   pageSize = 3,
 }: z.infer<typeof queryTaskSchema>) {
   try {
-    // 使用系統指令搜尋函數
+    // 使用系统指令搜索函数
     // Use system command search function
     const results = await searchTasksWithCommand(query, isId, page, pageSize);
 
-    // 使用prompt生成器獲取最終prompt
+    // 使用prompt生成器获取最终prompt
     // Use prompt generator to get the final prompt
     const prompt = await getQueryTaskPrompt({
       query,
@@ -75,7 +75,7 @@ export async function queryTask({
       content: [
         {
           type: "text" as const,
-          text: `## 系統錯誤\n\n查詢任務時發生錯誤: ${
+          text: `## 系统错误\n\n查找任务时发生错误: ${
           // ## System Error\n\nAn error occurred while querying tasks: ${
             error instanceof Error ? error.message : String(error)
           }`,

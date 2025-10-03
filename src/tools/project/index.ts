@@ -1,4 +1,4 @@
-// 導出所有專案工具
+// 导出所有项目工具
 // Export all project tools
 
 // initProjectRules

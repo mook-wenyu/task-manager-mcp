@@ -1,25 +1,25 @@
 import { z } from "zod";
 import { getReflectTaskPrompt } from "../../prompts/index.js";
 
-// 反思構想工具
+// 反思构想工具
 // Task reflection tool
 export const reflectTaskSchema = z.object({
   summary: z
     .string()
     .min(10, {
-      message: "任務摘要不能少於10個字符，請提供更詳細的描述以確保任務目標明確",
+      message: "任务摘要不能少于10个字符，请提供更详细的描述以确保任务目标明确",
       // Task summary cannot be less than 10 characters, please provide more detailed description to ensure task objectives are clear
     })
-    .describe("結構化的任務摘要，保持與分析階段一致以確保連續性"),
+    .describe("结构化的任务摘要，保持与分析阶段一致以确保连续性"),
     // Structured task summary, maintaining consistency with analysis phase to ensure continuity
   analysis: z
     .string()
     .min(100, {
-      message: "技術分析內容不夠詳盡，請提供完整的技術分析和實施方案",
+      message: "技术分析内容不够详尽，请提供完整的技术分析和实施方案",
       // Technical analysis content is not detailed enough, please provide complete technical analysis and implementation plan
     })
     .describe(
-      "完整詳盡的技術分析結果，包括所有技術細節、依賴組件和實施方案，如果需要提供程式碼請使用 pseudocode 格式且僅提供高級邏輯流程和關鍵步驟避免完整代碼"
+      "完整详尽的技术分析结果，包括所有技术细节、依赖组件和实施方案，如果需要提供代码请使用 pseudocode 格式且仅提供高级逻辑流程和关键步骤避免完整代码"
       // Complete and detailed technical analysis results, including all technical details, dependent components and implementation plans, if code is needed please use pseudocode format and only provide high-level logic flow and key steps avoiding complete code
     ),
 });
@@ -28,7 +28,7 @@ export async function reflectTask({
   summary,
   analysis,
 }: z.infer<typeof reflectTaskSchema>) {
-  // 使用prompt生成器獲取最終prompt
+  // 使用prompt生成器获取最终prompt
   // Use prompt generator to get the final prompt
   const prompt = await getReflectTaskPrompt({
     summary,

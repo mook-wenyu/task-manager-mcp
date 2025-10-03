@@ -1,6 +1,6 @@
 /**
  * clearAllTasks prompt 生成器
- * 負責將模板和參數組合成最終的 prompt
+ * 负责将模板和参数组合成最终的 prompt
  */
 /**
  * clearAllTasks prompt generator
@@ -14,7 +14,7 @@ import {
 } from "../loader.js";
 
 /**
- * clearAllTasks prompt 參數介面
+ * clearAllTasks prompt 参数接口
  */
 /**
  * clearAllTasks prompt parameter interface
@@ -28,8 +28,8 @@ export interface ClearAllTasksPromptParams {
 }
 
 /**
- * 獲取 clearAllTasks 的完整 prompt
- * @param params prompt 參數
+ * 获取 clearAllTasks 的完整 prompt
+ * @param params prompt 参数
  * @returns 生成的 prompt
  */
 /**
@@ -42,7 +42,7 @@ export async function getClearAllTasksPrompt(
 ): Promise<string> {
   const { confirm, success, message, backupFile, isEmpty } = params;
 
-  // 處理未確認的情況
+  // 处理未确认的情况
   // Handle unconfirmed situations
   if (confirm === false) {
     const cancelTemplate = await loadPromptFromTemplate(
@@ -51,7 +51,7 @@ export async function getClearAllTasksPrompt(
     return generatePrompt(cancelTemplate, {});
   }
 
-  // 處理無任務需要清除的情況
+  // 处理无任务需要清除的情况
   // Handle situations where no tasks need to be cleared
   if (isEmpty) {
     const emptyTemplate = await loadPromptFromTemplate(
@@ -60,7 +60,7 @@ export async function getClearAllTasksPrompt(
     return generatePrompt(emptyTemplate, {});
   }
 
-  // 處理清除成功或失敗的情況
+  // 处理清除成功或失败的情况
   // Handle success or failure situations for clearing
   const responseTitle = success ? "Success" : "Failure";
 
@@ -82,7 +82,7 @@ export async function getClearAllTasksPrompt(
     backupInfo,
   });
 
-  // 載入可能的自定義 prompt
+  // 加载可能的自定义 prompt
   // Load possible custom prompt
   return loadPrompt(prompt, "CLEAR_ALL_TASKS");
 }

@@ -1,4 +1,4 @@
-[🇺🇸 English](README.md) | [🇩🇪 Deutsch](docs/de/README.md) | [🇪🇸 Español](docs/es/README.md) | [🇫🇷 Français](docs/fr/README.md) | [🇮🇹 Italiano](docs/it/README.md) | [🇮🇳 हिन्दी](docs/hi/README.md) | [🇰🇷 한국어](docs/ko/README.md) | [🇧🇷 Português](docs/pt/README.md) | [🇷🇺 Русский](docs/ru/README.md) | [🇨🇳 中文](docs/zh/README.md)
+[🇺🇸 English](README.md) | [🇨🇳 中文](docs/zh-CN/README.md)
 
 # MCP Shrimp Task Manager
 

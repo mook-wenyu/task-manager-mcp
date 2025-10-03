@@ -1,4 +1,4 @@
-[English](../en/prompt-customization.md) | [中文](../zh/prompt-customization.md)
+[English](../en/prompt-customization.md) | [中文](../zh-CN/prompt-customization.md)
 
 # Prompt Customization Guide
 

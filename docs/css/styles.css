@@ -1,7 +1,7 @@
-/* MCP Shrimp Task Manager 網站樣式 */
+﻿/* MCP Shrimp Task Manager 网站样式 */
 /* MCP Shrimp Task Manager Website Styles */
 
-/* 全局變量 */
+/* 全局变量 */
 /* Global Variables */
 :root {
   --primary-color: #3b82f6;
@@ -21,7 +21,7 @@
   --solution-purple: #8b5cf6;
 }
 
-/* 全局樣式 */
+/* 全局样式 */
 /* Global Styles */
 html {
   scroll-behavior: smooth;
@@ -35,7 +35,7 @@ body {
   /* Prevent horizontal overflow */
 }
 
-/* 自定義動畫 */
+/* 自定义动画 */
 /* Custom Animations */
 @keyframes fadeIn {
   from {
@@ -93,7 +93,7 @@ body {
   }
 }
 
-/* 導航欄樣式 */
+/* 导航栏样式 */
 /* Navigation Bar Styles */
 header nav img {
   transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -136,7 +136,7 @@ header nav a:hover::after {
   max-height: 500px;
 }
 
-/* 英雄區樣式 */
+/* 英雄区样式 */
 /* Hero Section Styles */
 #hero {
   position: relative;
@@ -189,7 +189,7 @@ header nav a:hover::after {
   animation-fill-mode: forwards;
 }
 
-/* 痛點與解決方案區樣式 */
+/* 痛点与解决方案区样式 */
 /* Pain Points & Solutions Section Styles */
 #pain-points .shadow-lg {
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -257,7 +257,7 @@ header nav a:hover::after {
   background-color: var(--solution-purple);
 }
 
-/* 按鈕樣式 */
+/* 按钮样式 */
 /* Button Styles */
 .btn {
   display: inline-block;
@@ -313,7 +313,7 @@ header nav a:hover::after {
   box-shadow: 0 7px 14px rgba(0, 0, 0, 0.1);
 }
 
-/* 卡片樣式 */
+/* 卡片样式 */
 /* Card Styles */
 .card {
   background-color: white;
@@ -327,7 +327,7 @@ header nav a:hover::after {
   box-shadow: 0 15px 20px rgba(0, 0, 0, 0.12);
 }
 
-/* 代碼區塊樣式增強 */
+/* 代码区块样式增强 */
 /* Enhanced Code Block Styles */
 pre[class*="language-"] {
   border-radius: 0.5rem;
@@ -341,7 +341,7 @@ pre[class*="language-"]:hover {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-/* 響應式調整 - 手機端 (<768px) */
+/* 响应式调整 - 手机端 (<768px) */
 /* Responsive Adjustments - Mobile (<768px) */
 @media (max-width: 767px) {
   h1 {
@@ -413,7 +413,7 @@ pre[class*="language-"]:hover {
   }
 }
 
-/* 低性能設備動畫降級 */
+/* 低性能设备动画降级 */
 /* Animation Degradation for Low-Performance Devices */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -426,7 +426,7 @@ pre[class*="language-"]:hover {
   }
 }
 
-/* 輔助類 */
+/* 辅助类 */
 /* Utility Classes */
 .text-gradient {
   background: linear-gradient(
@@ -459,7 +459,7 @@ pre[class*="language-"]:hover {
   );
 }
 
-/* GitHub圖標 */
+/* GitHub图标 */
 /* GitHub Icon */
 header nav a[href*="github"] svg {
   transition: transform 0.3s ease;
@@ -469,7 +469,7 @@ header nav a[href*="github"]:hover svg {
   transform: rotate(10deg);
 }
 
-/* 自定義滾動條 */
+/* 自定义滚动条 */
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -488,7 +488,7 @@ header nav a[href*="github"]:hover svg {
   background: var(--gray-dark);
 }
 
-/* 功能卡片樣式 */
+/* 功能卡片样式 */
 /* Feature Card Styles */
 #features .rounded-lg {
   position: relative;
@@ -545,7 +545,7 @@ header nav a[href*="github"]:hover svg {
   width: 100%;
 }
 
-/* 根據顏色設置不同顏色光暈 */
+/* 根据颜色设置不同颜色光晕 */
 /* Set different color glows based on color */
 #features .bg-indigo-50 {
   box-shadow: 0 0 0 transparent;
@@ -601,7 +601,7 @@ header nav a[href*="github"]:hover svg {
   box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
 }
 
-/* 工作流程區域樣式 */
+/* 工作流程区域样式 */
 /* Workflow Area Styles */
 #workflow {
   position: relative;
@@ -620,7 +620,7 @@ header nav a[href*="github"]:hover svg {
   pointer-events: none;
 }
 
-/* 桌面版時間軸樣式 */
+/* 桌面版时间轴样式 */
 /* Desktop Timeline Styles */
 .workflow-step {
   display: flex;
@@ -654,7 +654,7 @@ header nav a[href*="github"]:hover svg {
   transform: translateY(-2px);
 }
 
-/* 移動版時間軸樣式 */
+/* 移动版时间轴样式 */
 /* Mobile Timeline Styles */
 .workflow-icon-mobile {
   width: 48px;
@@ -679,7 +679,7 @@ header nav a[href*="github"]:hover svg {
   }
 }
 
-/* 步驟詳情彈窗樣式 */
+/* 步骤详情弹窗样式 */
 /* Step Details Modal Styles */
 #workflow-detail-modal {
   transition: opacity 0.3s ease;
@@ -711,7 +711,7 @@ header nav a[href*="github"]:hover svg {
   width: 100%;
 }
 
-/* 安裝與配置區樣式 */
+/* 安装与配置区样式 */
 /* Installation & Configuration Section Styles */
 #installation .install-tab-btn {
   transition: all 0.3s ease;
@@ -738,7 +738,7 @@ header nav a[href*="github"]:hover svg {
   transform: scale(1.2);
 }
 
-/* 命令行介面樣式 */
+/* 命令行界面样式 */
 /* Command Line Interface Styles */
 .mockup-code {
   font-family: "Fira Code", monospace;
@@ -786,7 +786,7 @@ header nav a[href*="github"]:hover svg {
   transform: translateY(-2px);
 }
 
-/* Cursor IDE 配置選項卡 */
+/* Cursor IDE 配置选项卡 */
 /* Cursor IDE Configuration Tabs */
 .cursor-tab-btn {
   transition: all 0.3s ease;
@@ -799,7 +799,7 @@ header nav a[href*="github"]:hover svg {
   border-color: var(--primary-color);
 }
 
-/* 安裝卡片樣式 */
+/* 安装卡片样式 */
 /* Installation Card Styles */
 #installation .grid > div {
   transition: all 0.3s ease;
@@ -868,7 +868,7 @@ header nav a[href*="github"]:hover svg {
   }
 }
 
-/* CTA與資源區樣式 */
+/* CTA与资源区样式 */
 /* CTA & Resources Section Styles */
 #cta {
   position: relative;
@@ -887,7 +887,7 @@ header nav a[href*="github"]:hover svg {
   pointer-events: none;
 }
 
-/* CTA按鈕增強 */
+/* CTA按钮增强 */
 /* Enhanced CTA Button */
 .btn-lg {
   padding: 0.875rem 1.75rem;
@@ -903,7 +903,7 @@ header nav a[href*="github"]:hover svg {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* 資源卡片樣式 */
+/* 资源卡片样式 */
 /* Resource Card Styles */
 .resource-card {
   background-color: rgba(255, 255, 255, 0.1);
@@ -949,7 +949,7 @@ header nav a[href*="github"]:hover svg {
   opacity: 1;
 }
 
-/* 使用統計卡片 */
+/* 使用统计卡片 */
 /* Usage Statistics Cards */
 #cta .text-center {
   transition: all 0.3s ease;
@@ -982,7 +982,7 @@ header nav a[href*="github"]:hover svg {
   width: 80%;
 }
 
-/* 頁腳樣式 */
+/* 页脚样式 */
 /* Footer Styles */
 footer {
   position: relative;
@@ -1048,7 +1048,7 @@ footer ul li:hover {
   }
 }
 
-/* 語言切換按鈕 */
+/* 语言切换按钮 */
 /* Language Switch Button */
 .language-switcher {
   display: flex;
@@ -1083,7 +1083,7 @@ footer ul li:hover {
   border-color: var(--primary-color);
 }
 
-/* 在移動設備上調整語言切換按鈕 */
+/* 在移动设备上调整语言切换按钮 */
 /* Adjust language switch button on mobile devices */
 @media (max-width: 767px) {
   .language-switcher {
@@ -1097,3 +1097,4 @@ footer ul li:hover {
     font-size: 0.9rem;
   }
 }
+

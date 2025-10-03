@@ -6,27 +6,27 @@ import { TaskStatus, Task } from "../../types/index.js";
 import { getPlanTaskPrompt } from "../../prompts/index.js";
 import { getMemoryDir } from "../../utils/paths.js";
 
-// 開始規劃工具
+// 开始规划工具
 // Start planning tool
 export const planTaskSchema = z.object({
   description: z
     .string()
     .min(10, {
-      message: "任務描述不能少於10個字符，請提供更詳細的描述以確保任務目標明確",
+      message: "任务描述不能少于10个字符，请提供更详细的描述以确保任务目标明确",
       // Task description cannot be less than 10 characters, please provide a more detailed description to ensure clear task objectives
     })
-    .describe("完整詳細的任務問題描述，應包含任務目標、背景及預期成果"),
+    .describe("完整详细的任务问题描述，应包含任务目标、背景及预期成果"),
     // Complete and detailed task problem description, should include task objectives, background and expected results
   requirements: z
     .string()
     .optional()
-    .describe("任務的特定技術要求、業務約束條件或品質標準（選填）"),
+    .describe("任务的特定技术要求、业务约束条件或品质标准（选填）"),
     // Specific technical requirements, business constraints or quality standards for the task (optional)
   existingTasksReference: z
     .boolean()
     .optional()
     .default(false)
-    .describe("是否參考現有任務作為規劃基礎，用於任務調整和延續性規劃"),
+    .describe("是否参考现有任务作为规划基础，用于任务调整和延续性规划"),
     // Whether to reference existing tasks as a planning foundation, used for task adjustment and continuity planning
 });
 
@@ -35,25 +35,25 @@ export async function planTask({
   requirements,
   existingTasksReference = false,
 }: z.infer<typeof planTaskSchema>) {
-  // 獲取基礎目錄路徑
+  // 获取基础目录路径
   // Get base directory path
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = path.dirname(__filename);
   const PROJECT_ROOT = path.resolve(__dirname, "../../..");
   const MEMORY_DIR = await getMemoryDir();
 
-  // 準備所需參數
+  // 准备所需参数
   // Prepare required parameters
   let completedTasks: Task[] = [];
   let pendingTasks: Task[] = [];
 
-  // 當 existingTasksReference 為 true 時，從數據庫中載入所有任務作為參考
+  // 当 existingTasksReference 为 true 时，从数据库中加载所有任务作为参考
   // When existingTasksReference is true, load all tasks from database as reference
   if (existingTasksReference) {
     try {
       const allTasks = await getAllTasks();
 
-      // 將任務分為已完成和未完成兩類
+      // 将任务分为已完成和未完成两类
       // Divide tasks into completed and incomplete categories
       completedTasks = allTasks.filter(
         (task) => task.status === TaskStatus.COMPLETED
@@ -64,7 +64,7 @@ export async function planTask({
     } catch (error) {}
   }
 
-  // 使用prompt生成器獲取最終prompt
+  // 使用prompt生成器获取最终prompt
   // Use prompt generator to get the final prompt
   const prompt = await getPlanTaskPrompt({
     description,

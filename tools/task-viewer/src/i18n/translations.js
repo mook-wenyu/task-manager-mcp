@@ -314,7 +314,7 @@ export const translations = {
     close: "关闭",
     
     // Duplicate Template View
-    whyDuplicate: "📚 为什么要复制模板？",
+    whyDuplicate: "📚 为什幺要复制模板？",
     duplicateExplanation: "复制模板允许您为不同的用例创建现有模板的专门版本：",
     createVariations: "🎯 创建变体",
     createVariationsDesc: "为不同上下文制作专门版本：",
@@ -331,7 +331,7 @@ export const translations = {
     newTemplateName: "新模板名称",
     required: "*",
     nameHint: "选择一个能说明此副本用途或变体的描述性名称",
-    whatWillHappen: "📋 将会发生什么：",
+    whatWillHappen: "📋 将会发生什幺：",
     createNewTemplate: "创建新模板",
     copyContent: "复制内容",
     independentEditing: "独立编辑",
@@ -344,12 +344,12 @@ export const translations = {
     exportHint: "选中后，仅导出已自定义或覆盖的模板",
     
     // Activation Dialog
-    whatIsEnvVar: "📋 什么是环境变量？",
-    envVarExplanation: "环境变量是程序启动时可以读取的设置。MCP 服务器会检查自定义模板变量以覆盖其默认提示。通过设置 {envVar}，您告诉 MCP 服务器使用您编辑的模板而不是内置模板。",
-    whyNeedThis: "为什么需要这个？",
+    whatIsEnvVar: "📋 什幺是环境变量？",
+    envVarExplanation: "环境变量是进程启动时可以读取的设置。MCP 服务器会检查自定义模板变量以覆盖其默认提示。通过设置 {envVar}，您告诉 MCP 服务器使用您编辑的模板而不是内置模板。",
+    whyNeedThis: "为什幺需要这个？",
     whyNeedThisExplanation: "当 Claude 启动 MCP 服务器时，它会读取这些环境变量来自定义响应方式。如果不设置此变量，您的模板编辑将不会被使用。",
     howToSetVariable: "🚀 如何设置此变量",
-    chooseCommand: "根据您的设置选择下面的适当命令。这些命令会将变量导出到您的 shell 配置文件（如 ~/.bashrc 或 ~/.zshrc），以便在 Claude 启动时可用。",
+    chooseCommand: "根据您的设置选择下面的适当命令。这些命令会将变量导出到您的 shell 配置文档（如 ~/.bashrc 或 ~/.zshrc），以便在 Claude 启动时可用。",
     
     // Messages
     loading: "加载中...",
@@ -414,7 +414,7 @@ export const translations = {
     refreshTemplateData: "刷新模板数据",
     searchTasksPlaceholder: "🔍 搜索任务...",
     searchTasksTitle: "按任何文本内容搜索和筛选任务",
-    refreshCurrentProfile: "刷新当前项目数据 - 从文件重新加载任务",
+    refreshCurrentProfile: "刷新当前项目数据 - 从文档重新加载任务",
     
     // Project management
     editProjectSettings: "编辑项目设置",
@@ -422,7 +422,7 @@ export const translations = {
     selectProfileToViewTasks: "选择项目以查看任务",
     noProfilesAvailable: "没有可用的项目",
     noProfilesClickAddTab: "没有可用的项目。点击\"添加项目\"创建一个。",
-    loadingTasksFromFile: "从文件加载任务",
+    loadingTasksFromFile: "从文档加载任务",
     loadingTasks: "加载任务中... ⏳",
     
     // Add/Edit Project forms
@@ -430,17 +430,17 @@ export const translations = {
     profileName: "项目名称",
     profileNamePlaceholder: "例如，团队 Alpha 任务",
     profileNameTitle: "为此项目输入描述性名称",
-    taskFolderPath: "任务文件夹路径",
+    taskFolderPath: "任务文档夹路径",
     taskFolderPathPlaceholder: "/path/to/shrimp_data_folder",
-    taskFolderPathTitle: "输入包含 tasks.json 的虾米数据文件夹路径",
+    taskFolderPathTitle: "输入包含 tasks.json 的虾米数据文档夹路径",
     tip: "提示",
-    navigateToFolder: "在终端中导航到您的虾米数据文件夹并",
+    navigateToFolder: "在终端中导航到您的虾米数据文档夹并",
     typePwd: "输入 pwd 获取完整路径",
     example: "示例",
     projectRootPath: "项目根路径",
     projectRootPlaceholder: "例如，/home/user/my-project",
     projectRootTitle: "输入项目根目录的绝对路径",
-    projectRootHint: "这启用了在 VS Code 中打开的可点击文件链接",
+    projectRootHint: "这启用了在 VS Code 中打开的可点击文档链接",
     optional: "可选",
     addProfile: "添加项目",
     cancelAndCloseDialog: "取消并关闭对话框",
@@ -451,11 +451,11 @@ export const translations = {
     taskPath: "任务路径",
     editProfileNameTitle: "编辑项目名称",
     projectRootEditPlaceholder: "例如，/home/user/projects/my-project",
-    projectRootEditTitle: "设置项目根路径以启用 VS Code 文件链接",
-    projectRootEditHint: "设置此项以启用任务文件的可点击 VS Code 链接",
+    projectRootEditTitle: "设置项目根路径以启用 VS Code 文档链接",
+    projectRootEditHint: "设置此项以启用任务文档的可点击 VS Code 链接",
     taskPathPlaceholder: "/path/to/shrimp_data_folder/tasks.json",
-    taskPathTitle: "编辑此项目的 tasks.json 文件路径",
-    taskPathHint: "包含项目任务数据的 tasks.json 文件路径",
+    taskPathTitle: "编辑此项目的 tasks.json 文档路径",
+    taskPathHint: "包含项目任务数据的 tasks.json 文档路径",
     saveChanges: "保存更改",
     
     // Toast messages with parameters
@@ -506,8 +506,8 @@ export const translations = {
     
     // Global Settings
     globalSettings: "全局设置",
-    claudeFolderPath: "Claude 文件夹路径",
-    claudeFolderPathDesc: "如果您指定 Claude 文件夹路径，您将能够访问子代理和钩子设置",
+    claudeFolderPath: "Claude 文档夹路径",
+    claudeFolderPathDesc: "如果您指定 Claude 文档夹路径，您将能够访问子代理和钩子设置",
     claudeFolderPathPlaceholder: "例如：~/.config/claude",
     
     // Task messages
@@ -1410,7 +1410,7 @@ export const translations = {
     version: "バージョン",
     releaseNotes: "リリースノート",
     help: "ヘルプ",
-    language: "言語",
+    language: "言语",
     
     // Navigation tabs
     tasks: "タスク",
@@ -1419,13 +1419,13 @@ export const translations = {
     
     // Template Management
     templateManagement: "🎨 テンプレート管理",
-    templateManagementDesc: "すべてのタスクマネージャー機能のプロンプトテンプレートを管理します。テンプレートを編集、複製、またはリセットしてAIの動作をカスタマイズします。",
+    templateManagementDesc: "すべてのタスクマネージャー机能のプロンプトテンプレートを管理します。テンプレートを编集、拷贝、またはリセットしてAIの动作をカスタマイズします。",
     exportTemplates: "📤 テンプレートエクスポート",
-    exportTemplatesDesc: "チームと共有したり、後で使用するためにバックアップするテンプレート設定をエクスポートします",
+    exportTemplatesDesc: "チームと共有したり、后で使用するためにバックアップするテンプレート设置をエクスポートします",
     
     // Template columns
-    function: "機能",
-    description: "説明",
+    function: "机能",
+    description: "说明",
     status: "ステータス",
     actions: "操作",
     
@@ -1435,12 +1435,12 @@ export const translations = {
     statusCustomAppend: "カスタム+追加",
     
     // Template actions
-    edit: "編集",
-    editTemplate: "✏️ テンプレート編集",
+    edit: "编集",
+    editTemplate: "✏️ テンプレート编集",
     preview: "プレビュー",
     previewTemplate: "プレビュー: {name}",
-    duplicate: "複製",
-    duplicateTemplate: "📋 テンプレート複製",
+    duplicate: "拷贝",
+    duplicateTemplate: "📋 テンプレート拷贝",
     activate: "アクティベート",
     activateTemplate: "🚀 テンプレートアクティベート",
     reset: "リセット",
@@ -1451,18 +1451,18 @@ export const translations = {
     cancel: "キャンセル",
     back: "戻る",
     backToTemplates: "← テンプレートに戻る",
-    close: "閉じる",
+    close: "闭じる",
     
     // Common UI elements
     loading: "読み込み中...",
     error: "エラー",
     success: "成功",
     warning: "警告",
-    info: "情報",
+    info: "情报",
     
     // Profile Management
     profileManagement: "🔧 プロファイル管理",
-    profileManagementDesc: "タスクファイルプロファイルを管理します。新しいプロファイルを作成するか、既存のプロファイルを編集します。",
+    profileManagementDesc: "タスクファイルプロファイルを管理します。新しいプロファイルを作成するか、既存のプロファイルを编集します。",
     taskFolderPath: "タスクフォルダパス",
     taskFolderPathPlaceholder: "タスクファイルを含むフォルダパスを入力",
     profileName: "プロファイル名",
@@ -1470,38 +1470,38 @@ export const translations = {
     projectRootPath: "プロジェクトルートパス",
     projectRootPathPlaceholder: "プロジェクトルートパスを入力（オプション）",
     addProfile: "プロファイル追加",
-    editProfile: "プロファイル編集",
+    editProfile: "プロファイル编集",
     deleteProfile: "プロファイル削除",
     
     // Task Table
     taskNumber: "タスク番号",
     taskName: "タスク名",
     taskStatus: "ステータス",
-    dependencies: "依存関係",
+    dependencies: "依存関系",
     assignedAgent: "割り当てられたエージェント",
     
     // Task statuses
     pending: "保留中",
-    inProgress: "進行中",
+    inProgress: "进行中",
     completed: "完了",
     
     // Task actions
-    viewDetails: "詳細表示",
-    editTask: "タスク編集",
+    viewDetails: "详细表示",
+    editTask: "タスク编集",
     copyUUID: "UUID をコピー",
     copyAIInstruction: "AI指示をコピー",
     
     // Bulk operations
     bulkOperations: "一括操作",
-    selectAll: "すべて選択",
-    deselectAll: "すべて選択解除",
+    selectAll: "すべて选択",
+    deselectAll: "すべて选択解除",
     bulkAssignAgent: "エージェント一括割り当て",
     bulkDelete: "一括削除",
     
     // Task Detail View
-    taskDetails: "タスク詳細",
-    relatedFiles: "関連ファイル",
-    verificationCriteria: "検証基準",
+    taskDetails: "タスク详细",
+    relatedFiles: "関连ファイル",
+    verificationCriteria: "検证基准",
     implementationGuide: "実装ガイド",
     notes: "メモ",
     
@@ -1515,19 +1515,19 @@ export const translations = {
     
     // Project History
     projectHistory: "📊 プロジェクト履歴",
-    projectHistoryDesc: "プロジェクトタスク履歴と統計を確認します。",
+    projectHistoryDesc: "プロジェクトタスク履歴と统计を确认します。",
     historyEntries: "履歴エントリ",
     commitHistory: "コミット履歴",
     
     // Global Settings
-    globalSettings: "⚙️ グローバル設定",
-    globalSettingsDesc: "アプリケーションのグローバル設定を構成します。",
-    settings: "設定",
+    globalSettings: "⚙️ グローバル设置",
+    globalSettingsDesc: "アプリケーションのグローバル设置を构成します。",
+    settings: "设置",
     readme: "リードミー",
     subAgents: "サブエージェント",
-    projectSettings: "プロジェクト設定",
-    editProjectSettings: "プロジェクト設定を編集",
-    settingsSaved: "設定が正常に保存されました",
+    projectSettings: "プロジェクト设置",
+    editProjectSettings: "プロジェクト设置を编集",
+    settingsSaved: "设置が正常に保存されました",
     openaiApiKey: "OpenAI APIキー",
     openaiApiKeyPlaceholder: "OpenAI APIキーを入力",
     
@@ -1536,44 +1536,44 @@ export const translations = {
     profileUpdatedSuccess: "プロファイルが正常に更新されました",
     profileDeletedSuccess: "プロファイルが正常に削除されました",
     taskUpdatedSuccess: "タスクが正常に更新されました",
-    settingsSavedSuccess: "設定が正常に保存されました",
+    settingsSavedSuccess: "设置が正常に保存されました",
     copiedToClipboard: "クリップボードにコピーされました",
     
     // Empty states
-    noTasksFound: "タスクが見つかりません",
-    noProfilesFound: "プロファイルが見つかりません",
-    noTemplatesFound: "テンプレートが見つかりません",
-    noHistoryFound: "履歴が見つかりません",
+    noTasksFound: "タスクが见つかりません",
+    noProfilesFound: "プロファイルが见つかりません",
+    noTemplatesFound: "テンプレートが见つかりません",
+    noHistoryFound: "履歴が见つかりません",
     
     // File operations
-    selectFolder: "フォルダ選択",
+    selectFolder: "フォルダ选択",
     browseFolder: "フォルダを参照",
-    invalidPath: "無効なパスです",
-    pathNotFound: "パスが見つかりません",
+    invalidPath: "无効なパスです",
+    pathNotFound: "パスが见つかりません",
     
     // Search and filters
     search: "検索",
     searchPlaceholder: "検索...",
     filter: "フィルター",
-    filterByStatus: "ステータス別フィルター",
-    filterByAgent: "エージェント別フィルター",
+    filterByStatus: "ステータス别フィルター",
+    filterByAgent: "エージェント别フィルター",
     
     // Pagination
     page: "ページ",
     of: "の",
     itemsPerPage: "ページあたりのアイテム",
-    showingItems: "{start}-{end}項目を表示中（合計{total}件）",
+    showingItems: "{start}-{end}项目を表示中（合计{total}件）",
     
     // Statistics
     totalTasks: "総タスク数",
     completedTasks: "完了タスク",
     pendingTasks: "保留中タスク",
-    inProgressTasks: "進行中タスク",
+    inProgressTasks: "进行中タスク",
     
     // Agent related
     viewAgent: "エージェント表示",
-    editAgent: "エージェント編集",
-    noAgentsFound: "エージェントが見つかりません",
+    editAgent: "エージェント编集",
+    noAgentsFound: "エージェントが见つかりません",
     agentSavedSuccess: "エージェントが正常に保存されました",
     aiInstruction: "AI指示"
   },
