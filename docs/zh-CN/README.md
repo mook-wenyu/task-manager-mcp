@@ -1,4 +1,4 @@
-﻿[🇺🇸 English](../../README.md) | [🇨🇳 中文](README.md)
+[🇺🇸 English](../../README.md) | [🇨🇳 中文](README.md)
 
 # MCP 虾米任务管理器
 

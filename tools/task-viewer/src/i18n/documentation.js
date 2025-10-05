@@ -65,7 +65,7 @@ export const documentation = {
       }
     },
     readme: {
-      title: '🦐 虾任务管理器查看器',
+      title: '🦐 虾米任务管理器查看器',
       content: ``
     }
   },
