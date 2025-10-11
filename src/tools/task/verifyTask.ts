@@ -44,51 +44,81 @@ export async function verifyTask({
   summary,
   score,
 }: z.infer<typeof verifyTaskSchema>) {
+  const buildResponse = (
+    markdown: string,
+    options: {
+      taskName?: string;
+      statusAfter?: TaskStatus;
+      statusChanged?: boolean;
+      isError?: boolean;
+    } = {}
+  ) => {
+    const payload: Record<string, unknown> = {
+      markdown,
+      taskId,
+      score,
+      statusChanged: options.statusChanged ?? false,
+    };
+
+    if (options.taskName) {
+      payload.taskName = options.taskName;
+    }
+
+    if (options.statusAfter) {
+      payload.statusAfter = options.statusAfter;
+    }
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: markdown,
+        },
+      ],
+      structuredContent: {
+        kind: "taskManager.verify" as const,
+        payload,
+      },
+      ...(options.isError ? { isError: true } : {}),
+    };
+  };
+
   const task = await getTaskById(taskId);
 
   if (!task) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `## 系统错误\n\n找不到ID为 \`${taskId}\` 的任务。请使用「list_tasks」工具确认有效的任务ID后再试。`,
-          // text: `## System Error\n\nCannot find task with ID \`${taskId}\`. Please use the "list_tasks" tool to confirm a valid task ID and try again.`,
-        },
-      ],
+    const message = `## 系统错误\n\n找不到ID为 \`${taskId}\` 的任务。请使用「list_tasks」工具确认有效的任务ID后再试。`;
+    return buildResponse(message, {
+      statusChanged: false,
       isError: true,
-    };
+    });
   }
 
   if (task.status !== TaskStatus.IN_PROGRESS) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: `## 状态错误\n\n任务 "${task.name}" (ID: \`${task.id}\`) 当前状态为 "${task.status}"，不处于进行中状态，无法进行检验。\n\n只有状态为「进行中」的任务才能进行检验。请先使用「execute_task」工具开始任务运行。`,
-          // text: `## Status Error\n\nTask "${task.name}" (ID: \`${task.id}\`) current status is "${task.status}", not in progress state, cannot be verified.\n\nOnly tasks with "In Progress" status can be verified. Please use the "execute_task" tool to start task execution first.`,
-        },
-      ],
+    const message = `## 状态错误\n\n任务 "${task.name}" (ID: \`${task.id}\`) 当前状态为 "${task.status}"，不处于进行中状态，无法进行检验。\n\n只有状态为「进行中」的任务才能进行检验。请先使用「execute_task」工具开始任务运行。`;
+    return buildResponse(message, {
+      taskName: task.name,
+      statusAfter: task.status,
+      statusChanged: false,
       isError: true,
-    };
+    });
   }
+
+  let statusAfter: TaskStatus = task.status;
+  let statusChanged = false;
 
   if (score >= 80) {
-    // 更新任务状态为已完成，并添加摘要
-    // Update task status to completed and add summary
     await updateTaskSummary(taskId, summary);
     await updateTaskStatus(taskId, TaskStatus.COMPLETED);
+    statusAfter = TaskStatus.COMPLETED;
+    statusChanged = true;
+    task.status = statusAfter;
   }
 
-  // 使用prompt生成器获取最终prompt
-  // Use prompt generator to get final prompt
   const prompt = await getVerifyTaskPrompt({ task, score, summary });
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: prompt,
-      },
-    ],
-  };
+  return buildResponse(prompt, {
+    taskName: task.name,
+    statusAfter,
+    statusChanged,
+  });
 }

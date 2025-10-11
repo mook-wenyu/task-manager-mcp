@@ -26,20 +26,33 @@ export async function initProjectRules() {
           text: promptContent,
         },
       ],
+      structuredContent: {
+        kind: "taskManager.projectRules" as const,
+        payload: {
+          markdown: promptContent,
+          createdFiles: [],
+          warnings: [],
+        },
+      },
     };
   } catch (error) {
-    // 错误处理
-    // Error handling
     const errorMessage = error instanceof Error ? error.message : "未知错误";
-    // Unknown error
+    const message = `初始化项目规范时发生错误: ${errorMessage}`;
     return {
       content: [
         {
           type: "text" as const,
-          text: `初始化项目规范时发生错误: ${errorMessage}`,
-          // Error occurred during project specification initialization: ${errorMessage}
+          text: message,
         },
       ],
+      structuredContent: {
+        kind: "taskManager.projectRules" as const,
+        payload: {
+          markdown: message,
+          createdFiles: [],
+          warnings: [errorMessage],
+        },
+      },
     };
   }
 }

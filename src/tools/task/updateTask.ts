@@ -6,6 +6,7 @@ import {
 } from "../../models/taskModel.js";
 import { RelatedFileType } from "../../types/index.js";
 import { getUpdateTaskContentPrompt } from "../../prompts/index.js";
+import { serializeTaskDetail } from "../utils/structuredContent.js";
 
 // 更新任务内容工具
 // Update task content tool
@@ -89,6 +90,57 @@ export async function updateTaskContent({
   implementationGuide,
   verificationCriteria,
 }: z.infer<typeof updateTaskContentSchema>) {
+  const requestedFields: string[] = [];
+  if (name !== undefined) requestedFields.push("name");
+  if (description !== undefined) requestedFields.push("description");
+  if (notes !== undefined) requestedFields.push("notes");
+  if (dependencies !== undefined) requestedFields.push("dependencies");
+  if (implementationGuide !== undefined)
+    requestedFields.push("implementationGuide");
+  if (verificationCriteria !== undefined)
+    requestedFields.push("verificationCriteria");
+  if (relatedFiles !== undefined) requestedFields.push("relatedFiles");
+  const buildResponse = async (
+    promptArgs: Parameters<typeof getUpdateTaskContentPrompt>[0],
+    options: {
+      success: boolean;
+      message: string;
+      updatedTask?: ReturnType<typeof serializeTaskDetail>;
+      updatedFields?: string[];
+      isError?: boolean;
+    }
+  ) => {
+    const markdown = await getUpdateTaskContentPrompt(promptArgs);
+    const payload: Record<string, unknown> = {
+      markdown,
+      taskId,
+      success: options.success,
+      message: options.message,
+    };
+
+    if (options.updatedTask) {
+      payload.updatedTask = options.updatedTask;
+    }
+
+    if (options.updatedFields && options.updatedFields.length > 0) {
+      payload.updatedFields = options.updatedFields;
+    }
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: markdown,
+        },
+      ],
+      structuredContent: {
+        kind: "taskManager.update" as const,
+        payload,
+      },
+      ...(options.isError ? { isError: true } : {}),
+    };
+  };
+
   if (relatedFiles) {
     for (const file of relatedFiles) {
       if (
@@ -96,19 +148,20 @@ export async function updateTaskContent({
         (!file.lineStart && file.lineEnd) ||
         (file.lineStart && file.lineEnd && file.lineStart > file.lineEnd)
       ) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: await getUpdateTaskContentPrompt({
-                taskId,
-                validationError:
-                  "行号设置无效：必须同时设置起始行和结束行，且起始行必须小于结束行",
-                  // Invalid line number settings: start line and end line must be set simultaneously, and start line must be less than end line
-              }),
-            },
-          ],
-        };
+        const validationMessage =
+          "行号设置无效：必须同时设置起始行和结束行，且起始行必须小于结束行";
+        return await buildResponse(
+          {
+            taskId,
+            validationError: validationMessage,
+          },
+          {
+            success: false,
+            message: validationMessage,
+            updatedFields: ["relatedFiles"],
+            isError: true,
+          }
+        );
       }
     }
   }
@@ -124,17 +177,18 @@ export async function updateTaskContent({
       relatedFiles
     )
   ) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: await getUpdateTaskContentPrompt({
-            taskId,
-            emptyUpdate: true,
-          }),
-        },
-      ],
-    };
+    return await buildResponse(
+      {
+        taskId,
+        emptyUpdate: true,
+      },
+      {
+        success: false,
+        message: "没有提供需要更新的内容",
+        updatedFields: [],
+        isError: false,
+      }
+    );
   }
 
   // 获取任务以检查它是否存在
@@ -142,17 +196,17 @@ export async function updateTaskContent({
   const task = await getTaskById(taskId);
 
   if (!task) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: await getUpdateTaskContentPrompt({
-            taskId,
-          }),
-        },
-      ],
-      isError: true,
-    };
+    return await buildResponse(
+      {
+        taskId,
+      },
+      {
+        success: false,
+        message: "找不到指定任务",
+        updatedFields: requestedFields,
+        isError: true,
+      }
+    );
   }
 
   // 记录要更新的任务和内容
@@ -188,19 +242,24 @@ export async function updateTaskContent({
     verificationCriteria,
   });
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: await getUpdateTaskContentPrompt({
-          taskId,
-          task,
-          success: result.success,
-          message: result.message,
-          updatedTask: result.task,
-        }),
-      },
-    ],
-    isError: !result.success,
-  };
+  const serializedTask = result.task
+    ? serializeTaskDetail(result.task)
+    : undefined;
+
+  return await buildResponse(
+    {
+      taskId,
+      task,
+      success: result.success,
+      message: result.message,
+      updatedTask: result.task,
+    },
+    {
+      success: result.success,
+      message: result.message,
+      updatedTask: serializedTask,
+      updatedFields: requestedFields,
+      isError: !result.success,
+    }
+  );
 }

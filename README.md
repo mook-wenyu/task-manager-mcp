@@ -15,6 +15,12 @@
 
 </div>
 
+## ⚠️ SDK 升级提示（2025-10-11）
+- 服务器已完成 Model Context Protocol TypeScript SDK **v1.20.0** 迁移，现全面使用 `server.registerTool`/`registerPrompt` 等新接口，旧版 `server.tool` 配置将无法兼容。
+- 所有已注册工具均补充 `structuredContent` 与 `outputSchema`，详细契约请参阅 `docs/TOOL-OUTPUT-CONTRACTS.md`。
+- 新增能力声明默认开启工具与日志支持，若需扩展 prompts/resources，请在 `src/index.ts` 中调用 `server.registerCapabilities`。
+- 当前回归中 `npm run build` 已通过，`npm test -- --run` 现已绿灯，通过 `docs/HANDSHAKE-VERIFICATION.md` 中的 `npm run handshake` 可复核 MCP 初始化。
+
 ## 🚀 Quick Start
 
 ### Prerequisites

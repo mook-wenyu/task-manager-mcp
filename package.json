@@ -20,7 +20,8 @@
     "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "handshake": "node scripts/verify-handshake.mjs"
   },
   "keywords": [
     "mcp",
@@ -31,7 +32,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@modelcontextprotocol/sdk": "^1.20.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "get-port": "^7.1.0",

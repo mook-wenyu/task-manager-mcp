@@ -8,6 +8,7 @@ import { RelatedFileType, Task } from "../../types/index.js";
 import { getSplitTasksPrompt } from "../../prompts/index.js";
 import { getAllAvailableAgents } from "../../utils/agentLoader.js";
 import { matchAgentToTask } from "../../utils/agentMatcher.js";
+import { serializeTaskDetails } from "../utils/structuredContent.js";
 
 // 拆分任务工具
 // Task splitting tool
@@ -128,6 +129,49 @@ export async function splitTasks({
   tasks,
   globalAnalysisResult,
 }: z.infer<typeof splitTasksSchema>) {
+  const createStructuredResponse = (
+    markdown: string,
+    options: {
+      success: boolean;
+      message: string;
+      created?: Task[];
+      all?: Task[];
+      backup?: string | null;
+    }
+  ) => {
+    const payload: Record<string, unknown> = {
+      markdown,
+      updateMode,
+      success: options.success,
+      message: options.message,
+    };
+
+    if (options.created && options.created.length > 0) {
+      payload.createdTasks = serializeTaskDetails(options.created);
+    }
+
+    if (options.all && options.all.length > 0) {
+      payload.allTasks = serializeTaskDetails(options.all);
+    }
+
+    if (options.backup) {
+      payload.backupFilePath = options.backup;
+    }
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: markdown,
+        },
+      ],
+      structuredContent: {
+        kind: "taskManager.split" as const,
+        payload,
+      },
+    };
+  };
+
   try {
     // 加载可用的代理
     // Load available agents
@@ -145,15 +189,12 @@ export async function splitTasks({
     const nameSet = new Set();
     for (const task of tasks) {
       if (nameSet.has(task.name)) {
-        return {
-          content: [
-            {
-              type: "text" as const,
-              text: "tasks 参数中存在重复的任务名称，请确保每个任务名称是唯一的",
-              // Duplicate task names exist in tasks parameter, please ensure each task name is unique
-            },
-          ],
-        };
+        const messageText =
+          "tasks 参数中存在重复的任务名称，请确保每个任务名称是唯一的";
+        return createStructuredResponse(messageText, {
+          success: false,
+          message: messageText,
+        });
       }
       nameSet.add(task.name);
     }
@@ -285,32 +326,31 @@ export async function splitTasks({
       allTasks,
     });
 
+    const response = createStructuredResponse(prompt, {
+      success: actionSuccess,
+      message,
+      created: createdTasks,
+      all: allTasks,
+      backup: backupFile,
+    });
+
     return {
-      content: [
-        {
-          type: "text" as const,
-          text: prompt,
-        },
-      ],
+      ...response,
       ephemeral: {
         taskCreationResult: {
           success: actionSuccess,
           message,
-          backupFilePath: backupFile,
+          backupFilePath: backupFile ?? undefined,
         },
       },
     };
   } catch (error) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text:
-            "运行任务拆分时发生错误: " +
-            // Error occurred when executing task splitting: " +
-            (error instanceof Error ? error.message : String(error)),
-        },
-      ],
-    };
+    const messageText =
+      "运行任务拆分时发生错误: " +
+      (error instanceof Error ? error.message : String(error));
+    return createStructuredResponse(messageText, {
+      success: false,
+      message: messageText,
+    });
   }
 }

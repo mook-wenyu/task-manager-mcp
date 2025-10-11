@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { searchTasksWithCommand } from "../../models/taskModel.js";
 import { getQueryTaskPrompt } from "../../prompts/index.js";
+import { serializeTaskDetails } from "../utils/structuredContent.js";
 
 // 查找任务工具
 // Query task tool
@@ -69,18 +70,54 @@ export async function queryTask({
           text: prompt,
         },
       ],
+      structuredContent: {
+        kind: "taskManager.query" as const,
+        payload: {
+          markdown: prompt,
+          query,
+          isId,
+          page: results.pagination.currentPage,
+          pageSize,
+          results: serializeTaskDetails(results.tasks),
+          pagination: {
+            currentPage: results.pagination.currentPage,
+            totalPages: results.pagination.totalPages,
+            totalResults: results.pagination.totalResults,
+            pageSize,
+            hasMore: results.pagination.hasMore,
+          },
+        },
+      },
     };
   } catch (error) {
+    const message = `## 系统错误\n\n查找任务时发生错误: ${
+      error instanceof Error ? error.message : String(error)
+    }`;
     return {
       content: [
         {
           type: "text" as const,
-          text: `## 系统错误\n\n查找任务时发生错误: ${
-          // ## System Error\n\nAn error occurred while querying tasks: ${
-            error instanceof Error ? error.message : String(error)
-          }`,
+          text: message,
         },
       ],
+      structuredContent: {
+        kind: "taskManager.query" as const,
+        payload: {
+          markdown: message,
+          query,
+          isId,
+          page,
+          pageSize,
+          results: [],
+          pagination: {
+            currentPage: page,
+            totalPages: 1,
+            totalResults: 0,
+            pageSize,
+            hasMore: false,
+          },
+        },
+      },
       isError: true,
     };
   }

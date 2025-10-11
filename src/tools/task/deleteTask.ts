@@ -21,50 +21,69 @@ export const deleteTaskSchema = z.object({
 });
 
 export async function deleteTask({ taskId }: z.infer<typeof deleteTaskSchema>) {
+  const buildResponse = async (
+    promptArgs: Parameters<typeof getDeleteTaskPrompt>[0],
+    options: { success: boolean; message: string; isError?: boolean }
+  ) => {
+    const markdown = await getDeleteTaskPrompt(promptArgs);
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: markdown,
+        },
+      ],
+      structuredContent: {
+        kind: "taskManager.delete" as const,
+        payload: {
+          markdown,
+          taskId,
+          success: options.success,
+          message: options.message,
+        },
+      },
+      ...(options.isError ? { isError: true } : {}),
+    };
+  };
+
   const task = await getTaskById(taskId);
 
   if (!task) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: await getDeleteTaskPrompt({ taskId }),
-        },
-      ],
+    return buildResponse({ taskId }, {
+      success: false,
+      message: "找不到指定任务",
       isError: true,
-    };
+    });
   }
 
   if (task.status === TaskStatus.COMPLETED) {
-    return {
-      content: [
-        {
-          type: "text" as const,
-          text: await getDeleteTaskPrompt({
-            taskId,
-            task,
-            isTaskCompleted: true,
-          }),
-        },
-      ],
-      isError: true,
-    };
+    return buildResponse(
+      {
+        taskId,
+        task,
+        isTaskCompleted: true,
+      },
+      {
+        success: false,
+        message: "无法删除已完成的任务",
+        isError: true,
+      }
+    );
   }
 
   const result = await modelDeleteTask(taskId);
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: await getDeleteTaskPrompt({
-          taskId,
-          task,
-          success: result.success,
-          message: result.message,
-        }),
-      },
-    ],
-    isError: !result.success,
-  };
+  return buildResponse(
+    {
+      taskId,
+      task,
+      success: result.success,
+      message: result.message,
+    },
+    {
+      success: result.success,
+      message: result.message,
+      isError: !result.success,
+    }
+  );
 }

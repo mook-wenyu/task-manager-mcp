@@ -35,6 +35,15 @@ export async function reflectTask({
     analysis,
   });
 
+  const structuredContent = {
+    kind: "taskManager.reflect" as const,
+    payload: {
+      markdown: prompt,
+      summary,
+      analysis,
+    },
+  };
+
   return {
     content: [
       {
@@ -42,5 +51,6 @@ export async function reflectTask({
         text: prompt,
       },
     ],
+    structuredContent,
   };
 }

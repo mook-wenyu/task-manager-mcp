@@ -67,5 +67,16 @@ export async function researchMode({
         text: prompt,
       },
     ],
+    structuredContent: {
+      kind: "taskManager.research" as const,
+      payload: {
+        markdown: prompt,
+        topic,
+        previousState,
+        currentState,
+        nextSteps,
+        memoryDir: MEMORY_DIR,
+      },
+    },
   };
 }

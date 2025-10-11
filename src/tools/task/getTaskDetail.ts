@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { searchTasksWithCommand } from "../../models/taskModel.js";
 import { getGetTaskDetailPrompt } from "../../prompts/index.js";
+import { serializeTaskDetail } from "../utils/structuredContent.js";
 
 // 取得完整任务详情的参数
 // Get parameters for full task details
@@ -30,24 +31,28 @@ export async function getTaskDetail({
     // 检查是否找到任务
     // Check if task was found
     if (result.tasks.length === 0) {
+      const message = `## 错误\n\n找不到ID为 \`${taskId}\` 的任务。请确认任务ID是否正确。`;
       return {
         content: [
           {
             type: "text" as const,
-            text: `## 错误\n\n找不到ID为 \`${taskId}\` 的任务。请确认任务ID是否正确。`,
-            // Error: Cannot find task with ID `${taskId}`. Please confirm the task ID is correct.
+            text: message,
           },
         ],
+        structuredContent: {
+          kind: "taskManager.detail" as const,
+          payload: {
+            markdown: message,
+            taskId,
+            task: undefined,
+          },
+        },
         isError: true,
       };
     }
 
-    // 获取找到的任务（第一个也是唯一的一个）
-    // Get the found task (the first and only one)
     const task = result.tasks[0];
 
-    // 使用prompt生成器获取最终prompt
-    // Use prompt generator to get the final prompt
     const prompt = await getGetTaskDetailPrompt({
       taskId,
       task,
@@ -60,10 +65,16 @@ export async function getTaskDetail({
           text: prompt,
         },
       ],
+      structuredContent: {
+        kind: "taskManager.detail" as const,
+        payload: {
+          markdown: prompt,
+          taskId,
+          task: serializeTaskDetail(task),
+        },
+      },
     };
   } catch (error) {
-    // 使用prompt生成器获取错误消息
-    // Use prompt generator to get error message
     const errorPrompt = await getGetTaskDetailPrompt({
       taskId,
       error: error instanceof Error ? error.message : String(error),
@@ -76,6 +87,15 @@ export async function getTaskDetail({
           text: errorPrompt,
         },
       ],
+      structuredContent: {
+        kind: "taskManager.detail" as const,
+        payload: {
+          markdown: errorPrompt,
+          taskId,
+          task: undefined,
+        },
+      },
+      isError: true,
     };
   }
 }

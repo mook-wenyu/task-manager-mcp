@@ -93,8 +93,24 @@ export async function processThought(
     // Format thought output
     const formattedThought = await getProcessThoughtPrompt(thoughtData);
 
-    // 返回成功响应
-    // Return success response
+    const structuredContent = {
+      kind: "taskManager.thought" as const,
+      payload: {
+        markdown: formattedThought,
+        thoughtNumber: thoughtData.thoughtNumber,
+        totalThoughts: thoughtData.totalThoughts,
+        nextThoughtNeeded: thoughtData.nextThoughtNeeded,
+        stage: thoughtData.stage,
+        tags: thoughtData.tags?.length ? thoughtData.tags : undefined,
+        axiomsUsed: thoughtData.axioms_used?.length
+          ? thoughtData.axioms_used
+          : undefined,
+        assumptionsChallenged: thoughtData.assumptions_challenged?.length
+          ? thoughtData.assumptions_challenged
+          : undefined,
+      },
+    };
+
     return {
       content: [
         {
@@ -102,20 +118,31 @@ export async function processThought(
           text: formattedThought,
         },
       ],
+      structuredContent,
     };
   } catch (error) {
-    // 捕获并处理所有未预期的错误
-    // Catch and handle all unexpected errors
     const errorMessage = error instanceof Error ? error.message : "未知错误";
-    // const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const fallback = `处理思维时发生错误: ${errorMessage}`;
     return {
       content: [
         {
           type: "text" as const,
-          text: `处理思维时发生错误: ${errorMessage}`,
-          // text: `Error occurred while processing thought: ${errorMessage}`,
+          text: fallback,
         },
       ],
+      structuredContent: {
+        kind: "taskManager.thought" as const,
+        payload: {
+          markdown: fallback,
+          thoughtNumber: params.thought_number,
+          totalThoughts: params.total_thoughts,
+          nextThoughtNeeded: params.next_thought_needed,
+          stage: params.stage,
+          tags: params.tags,
+          axiomsUsed: params.axioms_used,
+          assumptionsChallenged: params.assumptions_challenged,
+        },
+      },
     };
   }
 }

@@ -45,6 +45,16 @@ export async function analyzeTask({
     previousAnalysis,
   });
 
+  const structuredContent = {
+    kind: "taskManager.analyze" as const,
+    payload: {
+      markdown: prompt,
+      summary,
+      initialConcept,
+      ...(previousAnalysis ? { previousAnalysis } : {}),
+    },
+  };
+
   return {
     content: [
       {
@@ -52,5 +62,6 @@ export async function analyzeTask({
         text: prompt,
       },
     ],
+    structuredContent,
   };
 }

@@ -89,6 +89,59 @@ const AGENT_KEYWORD_MAPPINGS: AgentKeywordMap = {
   }
 };
 
+function normalizeTextForMatching(value: string): string {
+  return value.toLowerCase();
+}
+
+function scoreCapabilities(agent: Agent, text: string, normalizedType?: string): number {
+  if (!agent.capabilities || agent.capabilities.length === 0) {
+    return 0;
+  }
+
+  let score = 0;
+
+  for (const capability of agent.capabilities) {
+    const normalizedCapability = capability.toLowerCase().trim();
+    if (!normalizedCapability) {
+      continue;
+    }
+
+    const escaped = normalizedCapability
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/\s+/g, '\\s+');
+
+    const regex = new RegExp(`\\b${escaped}\\b`, 'i');
+    if (regex.test(text)) {
+      score += 2;
+    } else if (text.includes(normalizedCapability)) {
+      score += 1;
+    }
+
+    if (normalizedType && normalizedCapability.includes(normalizedType)) {
+      score += 1;
+    }
+  }
+
+  return score;
+}
+
+function findBestCapabilityMatch(
+  agents: Agent[],
+  text: string,
+  normalizedType?: string
+): Agent | undefined {
+  const scoredAgents = agents
+    .map(agent => ({ agent, score: scoreCapabilities(agent, text, normalizedType) }))
+    .filter(item => item.score > 0);
+
+  if (scoredAgents.length === 0) {
+    return undefined;
+  }
+
+  scoredAgents.sort((a, b) => b.score - a.score);
+  return scoredAgents[0].agent;
+}
+
 /**
  * Calculate the relevance score for a given text against a set of keywords
  */
@@ -145,34 +198,16 @@ function calculateKeywordScore(text: string, keywords: string[], weight: number,
  * Find the best matching agent type based on task content
  */
 function findBestAgentType(task: Task): { type: string; score: number } | undefined {
-  const combinedText = `${task.name} ${task.description || ''} ${task.notes || ''} ${task.implementationGuide || ''}`;
-  
-  if (!combinedText.trim()) {
-    return undefined;
+  const details = getKeywordMatchDetails(task);
+  const bestMatch = details[0];
+
+  if (bestMatch && bestMatch.score >= 1.0) {
+    return {
+      type: bestMatch.type,
+      score: bestMatch.score,
+    };
   }
-  
-  const scores: Array<{ type: string; score: number }> = [];
-  
-  for (const [agentType, mapping] of Object.entries(AGENT_KEYWORD_MAPPINGS)) {
-    const score = calculateKeywordScore(combinedText, mapping.keywords, mapping.weight, agentType);
-    if (score > 0) {
-      scores.push({ type: agentType, score });
-    }
-  }
-  
-  if (scores.length === 0) {
-    return undefined;
-  }
-  
-  // Sort by score descending and return the best match
-  scores.sort((a, b) => b.score - a.score);
-  
-  // Only return if the score is significant enough (threshold)
-  const bestMatch = scores[0];
-  if (bestMatch.score >= 1.0) {
-    return bestMatch;
-  }
-  
+
   return undefined;
 }
 
@@ -180,58 +215,71 @@ function findBestAgentType(task: Task): { type: string; score: number } | undefi
  * Match a task to the most suitable agent from available agents
  */
 export function matchAgentToTask(task: Task, availableAgents: Agent[]): string | undefined {
-  // Handle edge cases
   if (!task || !availableAgents || availableAgents.length === 0) {
     return undefined;
   }
-  
-  // Find the best agent type for this task
-  const bestAgentType = findBestAgentType(task);
-  
-  if (!bestAgentType) {
-    return undefined;
-  }
-  
-  // Try to find an agent that matches the type
-  // Look for agents with the type keyword in their name
-  let matchedAgent = availableAgents.find(agent => 
-    agent.name.toLowerCase().includes(bestAgentType.type.toLowerCase())
+
+  const combinedText = normalizeTextForMatching(
+    `${task.name} ${task.description || ''} ${task.notes || ''} ${task.implementationGuide || ''}`
   );
-  
-  if (matchedAgent) {
-    return matchedAgent.name;
+
+  const bestAgentType = findBestAgentType(task);
+
+  if (!bestAgentType) {
+    const capabilityAgent = findBestCapabilityMatch(availableAgents, combinedText);
+    return capabilityAgent?.name;
   }
-  
-  // If no exact type match, look for agents with matching keywords in their name
+
+  const normalizedType = bestAgentType.type.toLowerCase();
+
+  const directTypeMatch = availableAgents.find(
+    agent => agent.type && agent.type.toLowerCase() === normalizedType
+  );
+  if (directTypeMatch) {
+    return directTypeMatch.name;
+  }
+
+  const capabilityAgent = findBestCapabilityMatch(
+    availableAgents,
+    combinedText,
+    normalizedType
+  );
+  if (capabilityAgent) {
+    return capabilityAgent.name;
+  }
+
+  const nameTypeMatch = availableAgents.find(agent =>
+    agent.name.toLowerCase().includes(normalizedType)
+  );
+  if (nameTypeMatch) {
+    return nameTypeMatch.name;
+  }
+
   const typeKeywords = AGENT_KEYWORD_MAPPINGS[bestAgentType.type]?.keywords || [];
-  
-  // Score all agents based on keyword matches in their names
-  const agentScores = availableAgents.map(agent => {
-    const agentNameLower = agent.name.toLowerCase();
-    let agentScore = 0;
-    
-    // Check each keyword against agent name
-    for (const keyword of typeKeywords) {
-      const escapedKeyword = keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'i');
-      if (regex.test(agentNameLower)) {
-        agentScore += 2; // Higher weight for name matches
+
+  const agentScores = availableAgents
+    .map(agent => {
+      const agentNameLower = agent.name.toLowerCase();
+      let agentScore = 0;
+
+      for (const keyword of typeKeywords) {
+        const escapedKeyword = keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`\\b${escapedKeyword}\\b`, 'i');
+        if (regex.test(agentNameLower)) {
+          agentScore += 2;
+        }
       }
-    }
-    
-    return { agent, score: agentScore };
-  }).filter(item => item.score > 0);
-  
-  // Sort by score and return the best match
+
+      return { agent, score: agentScore };
+    })
+    .filter(item => item.score > 0);
+
   if (agentScores.length > 0) {
     agentScores.sort((a, b) => b.score - a.score);
     return agentScores[0].agent.name;
   }
-  
-  // Check description if no name matches
+
   for (const agent of availableAgents) {
-    
-    // Check description if available
     if (agent.description) {
       const descriptionLower = agent.description.toLowerCase();
       for (const keyword of typeKeywords) {
@@ -243,17 +291,15 @@ export function matchAgentToTask(task: Task, availableAgents: Agent[]): string |
       }
     }
   }
-  
-  // If still no match but we have a general-purpose agent, use it
-  const generalAgent = availableAgents.find(agent => 
+
+  const generalAgent = availableAgents.find(agent =>
     agent.name.toLowerCase().includes('general')
   );
-  
+
   if (generalAgent && bestAgentType.score >= 2.0) {
-    // Only use general agent if the task has a strong match to some domain
     return generalAgent.name;
   }
-  
+
   return undefined;
 }
 

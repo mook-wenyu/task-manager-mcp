@@ -6,6 +6,11 @@ import { InitializedNotificationSchema, type CallToolResult } from "@modelcontex
 import type { ZodRawShape } from "zod";
 import { setGlobalServer } from "./utils/paths.js";
 import { createWebServer } from "./web/webServer.js";
+import {
+  TOOL_STRUCTURED_SCHEMAS,
+  validateStructuredContent,
+  type ToolStructuredContentName,
+} from "./tools/schemas/index.js";
 
 import {
   planTask,
@@ -41,18 +46,20 @@ import {
 
 type ToolInvocation = CallToolResult | Promise<CallToolResult>;
 
+type BaseToolDefinition = {
+  name: string;
+  template: string;
+  title?: string;
+};
+
 type ToolDefinition =
-  | {
-      name: string;
-      template: string;
+  | (BaseToolDefinition & {
       schema: ZodRawShape;
       invoke: (args: unknown) => ToolInvocation;
-    }
-  | {
-      name: string;
-      template: string;
+    })
+  | (BaseToolDefinition & {
       invoke: () => ToolInvocation;
-    };
+    });
 
 const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
@@ -147,18 +154,79 @@ const TOOL_DEFINITIONS: ToolDefinition[] = [
   },
 ];
 
+function hasStructuredSchema(name: string): name is ToolStructuredContentName {
+  return Object.prototype.hasOwnProperty.call(
+    TOOL_STRUCTURED_SCHEMAS,
+    name
+  );
+}
+
+function withStructuredValidation(
+  name: ToolStructuredContentName,
+  result: CallToolResult
+): CallToolResult {
+  if (!result.structuredContent) {
+    console.warn(`[${name}] ç¼ºå°‘ structuredContentï¼Œå·²è·³è¿‡ schema æ ¡éªŒ`);
+    return result;
+  }
+
+  const validated = validateStructuredContent(name, result.structuredContent);
+  return {
+    ...result,
+    structuredContent: validated,
+  };
+}
+
+async function resolveToolResult(
+  name: string,
+  invocation: ToolInvocation
+): Promise<CallToolResult> {
+  const result = await Promise.resolve(invocation);
+
+  if (hasStructuredSchema(name)) {
+    return withStructuredValidation(name, result);
+  }
+
+  return result;
+}
+
 async function registerTools(server: McpServer): Promise<void> {
   for (const tool of TOOL_DEFINITIONS) {
     const description = await loadPromptFromTemplate(tool.template);
+    const baseConfig = {
+      title: tool.title ?? tool.name,
+      description,
+    };
+
+    const outputShape = hasStructuredSchema(tool.name)
+      ? TOOL_STRUCTURED_SCHEMAS[tool.name].shape
+      : undefined;
 
     if ("schema" in tool) {
-      server.tool(tool.name, description, tool.schema, async (args) => {
-        return await Promise.resolve(tool.invoke(args));
-      });
+      server.registerTool(
+        tool.name,
+        {
+          ...baseConfig,
+          inputSchema: tool.schema,
+          ...(outputShape ? { outputSchema: outputShape } : {}),
+        },
+        async (args, extra) => {
+          void extra;
+          return await resolveToolResult(tool.name, tool.invoke(args));
+        }
+      );
     } else {
-      server.tool(tool.name, description, async () => {
-        return await Promise.resolve(tool.invoke());
-      });
+      server.registerTool(
+        tool.name,
+        {
+          ...baseConfig,
+          ...(outputShape ? { outputSchema: outputShape } : {}),
+        },
+        async (extra) => {
+          void extra;
+          return await resolveToolResult(tool.name, tool.invoke());
+        }
+      );
     }
   }
 }
@@ -179,6 +247,8 @@ async function main() {
             listChanged: false,
           },
           logging: {},
+          prompts: {},
+          resources: {},
         },
       }
     );
@@ -195,7 +265,7 @@ async function main() {
             webServerInstance = await createWebServer();
             await webServerInstance.startServer();
           } catch (error) {
-            // MCP »·¾³ÖĞ½ö¼ÇÂ¼£¬±ÜÃâ´ò¶ÏÖ÷Á÷³Ì
+            console.error("åˆå§‹åŒ–åå¯åŠ¨ GUI æœåŠ¡å¤±è´¥", error);
           }
         }
       );
@@ -204,6 +274,7 @@ async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
   } catch (error) {
+    console.error("Shrimp Task Manager æœåŠ¡å™¨å¯åŠ¨å¤±è´¥", error);
     process.exit(1);
   }
 }

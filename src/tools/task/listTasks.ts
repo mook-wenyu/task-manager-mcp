@@ -2,6 +2,10 @@ import { z } from "zod";
 import { getAllTasks } from "../../models/taskModel.js";
 import { TaskStatus } from "../../types/index.js";
 import { getListTasksPrompt } from "../../prompts/index.js";
+import {
+  countTasksByStatus,
+  serializeTaskDetails,
+} from "../utils/structuredContent.js";
 
 export const listTasksSchema = z.object({
   status: z
@@ -35,19 +39,30 @@ export async function listTasks({ status }: z.infer<typeof listTasksSchema>) {
       break;
   }
 
+  const counts = countTasksByStatus(tasks);
+  counts.filtered = filteredTasks.length;
+
   if (filteredTasks.length === 0) {
+    const message = `## 系统通知\n\n目前系统中没有${
+      status === "all" ? "任何" : `任何 ${status} 的`
+    }任务。请查找其他状态任务或先使用「split_tasks」工具创建任务结构，再进行后续操作。`;
+
     return {
       content: [
         {
           type: "text" as const,
-          text: `## 系统通知\n\n目前系统中没有${
-            // ## System Notification\n\nCurrently there are no ${
-            status === "all" ? "任何" : `任何 ${status} 的`
-            // status === "all" ? "any" : `any ${status}`
-          }任务。请查找其他状态任务或先使用「split_tasks」工具创建任务结构，再进行后续操作。`,
-          // }tasks. Please query other status tasks or first use the "split_tasks" tool to create task structure, then proceed with subsequent operations.
+          text: message,
         },
       ],
+      structuredContent: {
+        kind: "taskManager.list" as const,
+        payload: {
+          markdown: message,
+          requestedStatus: status,
+          counts,
+          tasks: [],
+        },
+      },
     };
   }
 
@@ -74,5 +89,14 @@ export async function listTasks({ status }: z.infer<typeof listTasksSchema>) {
         text: prompt,
       },
     ],
+    structuredContent: {
+      kind: "taskManager.list" as const,
+      payload: {
+        markdown: prompt,
+        requestedStatus: status,
+        counts,
+        tasks: serializeTaskDetails(filteredTasks),
+      },
+    },
   };
 }

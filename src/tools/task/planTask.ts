@@ -75,6 +75,23 @@ export async function planTask({
     memoryDir: MEMORY_DIR,
   });
 
+  const structuredContent = {
+    kind: "taskManager.plan" as const,
+    payload: {
+      markdown: prompt,
+      prompt,
+      ...(existingTasksReference
+        ? {
+            existingTaskStats: {
+              total: completedTasks.length + pendingTasks.length,
+              completed: completedTasks.length,
+              pending: pendingTasks.length,
+            },
+          }
+        : {}),
+    },
+  };
+
   return {
     content: [
       {
@@ -82,5 +99,6 @@ export async function planTask({
         text: prompt,
       },
     ],
+    structuredContent,
   };
 }
