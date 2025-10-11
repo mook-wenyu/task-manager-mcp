@@ -333,7 +333,7 @@ footer {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* 進度指示器樣式 */
+/* 进度指示器样式 */
 /* Progress indicator styles */
 .progress-indicator {
   margin-bottom: 20px;
@@ -365,7 +365,7 @@ footer {
 }
 
 .progress-pending {
-  background-color: #f1c40f; /* 與status-pending一致 */
+  background-color: #f1c40f; /* 与status-pending一致 */
                               /* Consistent with status-pending */
 }
 
@@ -393,10 +393,10 @@ footer {
   color: #f1c40f;
 }
 
-/* 依賴關係圖樣式 */
+/* 依赖关系图样式 */
 /* Dependency graph styles */
 .dependency-graph svg {
-  display: block; /* 避免底部多餘空間 */
+  display: block; /* 避免底部多余空间 */
                   /* Avoid extra space at the bottom */
   width: 100%;
   height: 100%;
@@ -404,40 +404,40 @@ footer {
 
 .nodes g.node-item circle {
   transition: r 0.2s, stroke 0.2s;
-  /* 根據類型設置基礎顏色 */
+  /* 根据类型设置基础颜色 */
   /* Set base colors according to type */
 }
 .nodes g.type-current circle {
-  fill: var(--primary-color); /* 當前選中任務 */
+  fill: var(--primary-color); /* 当前选中任务 */
                                /* Currently selected task */
 }
 .nodes g.type-dependency circle {
-  fill: var(--danger-color); /* 前置依賴任務 */
+  fill: var(--danger-color); /* 前置依赖任务 */
                               /* Pre-dependency task */
 }
 .nodes g.type-dependent circle {
-  fill: var(--secondary-color); /* 後置依賴任務 */
+  fill: var(--secondary-color); /* 后置依赖任务 */
                                 /* Post-dependency task */
 }
 .nodes g.type-unknown circle {
-  fill: #7f8c8d; /* 未知任務 */
+  fill: #7f8c8d; /* 未知任务 */
                  /* Unknown task */
 }
 
-/* 根據狀態調整節點透明度或邊框 */
+/* 根据状态调整节点透明度或边框 */
 /* Adjust node opacity or border based on status */
 .nodes g.status-completed circle {
   opacity: 0.6;
 }
 .nodes g.status-in-progress circle {
-  /* 可以添加特殊效果，如描邊動畫 */
+  /* 可以添加特殊效果，如描边动画 */
   /* Can add special effects, such as stroke animation */
   stroke: var(--accent-color);
   stroke-width: 2px;
 }
 
 .nodes g.node-item:hover circle {
-  r: 14; /* 懸停時放大 */
+  r: 14; /* 悬停时放大 */
          /* Enlarge on hover */
   stroke: #fff;
   stroke-width: 2.5px;
@@ -446,14 +446,14 @@ footer {
 .nodes g.node-item text {
   fill: var(--text-color);
   font-size: 10px;
-  pointer-events: none; /* 避免文本干擾點擊 */
+  pointer-events: none; /* 避免文本干扰点击 */
                         /* Avoid text interfering with clicks */
 }
 
-/* 新增：高亮節點樣式 */
+/* 新增：高亮节点样式 */
 /* New: Highlight node styles */
 g.node-item.highlighted circle {
-  stroke: var(--accent-color) !important; /* 使用重要標誌確保覆蓋 */
+  stroke: var(--accent-color) !important; /* 使用重要标志确保覆盖 */
                                            /* Use important flag to ensure override */
   stroke-width: 3px !important;
 }
@@ -479,7 +479,7 @@ g.node-item.highlighted circle {
   }
 }
 
-/* 過濾器區域樣式 */
+/* 过滤器区域样式 */
 /* Filter area styles */
 .filters {
   display: flex;
@@ -498,7 +498,7 @@ g.node-item.highlighted circle {
 }
 
 .filters input[type="text"] {
-  flex-grow: 1; /* 讓搜索框佔據更多空間 */
+  flex-grow: 1; /* 让搜索框占据更多空间 */
                  /* Let the search box occupy more space */
   min-width: 150px;
 }
