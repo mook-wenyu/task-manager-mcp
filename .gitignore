@@ -47,6 +47,7 @@ temp/
 # 系統檔案
 .DS_Store
 Thumbs.db
+/%SystemDrive%/
 
 # 覆蓋率報告
 coverage/
