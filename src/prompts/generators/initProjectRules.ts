@@ -24,7 +24,7 @@ export interface InitProjectRulesPromptParams {
  * @returns generated prompt
  */
 export async function getInitProjectRulesPrompt(
-  params?: InitProjectRulesPromptParams
+  _params?: InitProjectRulesPromptParams
 ): Promise<string> {
   const indexTemplate = await loadPromptFromTemplate(
     "initProjectRules/index.md"

@@ -74,7 +74,6 @@ async function main() {
     cwd: process.cwd(),
     env: {
       ...process.env,
-      ENABLE_GUI: "false",
     },
     stdio: "inherit",
     shell: process.platform === "win32",

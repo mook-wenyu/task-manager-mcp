@@ -10,12 +10,9 @@ import {
 import fs from "fs/promises";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
-import { fileURLToPath } from "url";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { getDataDir, getTasksFilePath, getMemoryDir } from "../utils/paths.js";
-
-const execAsync = promisify(exec);
 
 // Helper function to get current date/time in server's local timezone
 function getLocalDate(): Date {
@@ -41,62 +38,8 @@ function getLocalISOString(): string {
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${offsetSign}${offsetHours}:${offsetMinutes}`;
 }
 
-// Git helper functions
-async function initGitIfNeeded(dataDir: string): Promise<void> {
-  const gitDir = path.join(dataDir, '.git');
-  try {
-    await fs.access(gitDir);
-    // Git already initialized
-  } catch {
-    // Initialize git repository
-    await execAsync(`cd "${dataDir}" && git init`);
-    await execAsync(`cd "${dataDir}" && git config user.name "Shrimp Task Manager"`);
-    await execAsync(`cd "${dataDir}" && git config user.email "shrimp@task-manager.local"`);
-    
-    // Create .gitignore
-    const gitignore = `# Temporary files
-*.tmp
-*.log
-
-# OS files
-.DS_Store
-Thumbs.db
-`;
-    await fs.writeFile(path.join(dataDir, '.gitignore'), gitignore);
-    
-    // Initial commit
-    await execAsync(`cd "${dataDir}" && git add .`);
-    await execAsync(`cd "${dataDir}" && git commit -m "Initial commit: Initialize task repository"`);
-  }
-}
-
-async function commitTaskChanges(dataDir: string, message: string, details?: string): Promise<void> {
-  try {
-    // Stage the tasks.json file
-    await execAsync(`cd "${dataDir}" && git add tasks.json`);
-    
-    // Check if there are changes to commit
-    const { stdout } = await execAsync(`cd "${dataDir}" && git status --porcelain tasks.json`);
-    
-    if (stdout.trim()) {
-      // There are changes to commit
-      const fullMessage = details ? `${message}\n\n${details}` : message;
-      const timestamp = getLocalISOString();
-      const commitMessage = `[${timestamp}] ${fullMessage}`;
-      
-      await execAsync(`cd "${dataDir}" && git commit -m "${commitMessage.replace(/"/g, '\\"')}"`);
-    }
-  } catch (error) {
-    console.error('Git commit error:', error);
-    // Don't fail the operation if git fails
-  }
-}
-
 // 确保获取项目文件夹路径
 // Ensure getting project data folder path
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, "../..");
 
 // 数据文档路径（改为异步获取）
 // Data file paths (changed to asynchronous acquisition)
@@ -146,21 +89,10 @@ async function readTasks(): Promise<Task[]> {
 
 // 写入所有任务
 // Write all tasks
-async function writeTasks(tasks: Task[], commitMessage?: string): Promise<void> {
+async function writeTasks(tasks: Task[], _commitMessage?: string): Promise<void> {
   await ensureDataDir();
   const TASKS_FILE = await getTasksFilePath();
-  const DATA_DIR = await getDataDir();
-  
-  // Initialize git if needed
-  await initGitIfNeeded(DATA_DIR);
-  
-  // Write the tasks file
   await fs.writeFile(TASKS_FILE, JSON.stringify({ tasks }, null, 2));
-  
-  // Commit the changes
-  if (commitMessage) {
-    await commitTaskChanges(DATA_DIR, commitMessage);
-  }
 }
 
 // 获取所有任务

@@ -1,7 +1,7 @@
+import { mkdir } from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import fs from "fs";
 
 // 取得项目根目录
 // Get project root directory
@@ -32,10 +32,12 @@ export function getGlobalServer(): Server | null {
 /**
  * 取得 DATA_DIR 路径
  * Get DATA_DIR path
- * 如果有 server 且支持 listRoots，则使用第一笔 file:// 开头的 root + "/data"
- * If there's a server that supports listRoots, use the first root starting with file:// + "/data"
- * 否则使用环境变量或项目根目录
- * Otherwise use environment variables or project root directory
+ * 优先使用支持 listRoots 的 server 返回的第一笔 file:// 根路径
+ * Prefer the first file:// root returned by listRoots when a server is available
+ * 若无可用 root，则回退至当前工作目录，再回退至模块项目根目录
+ * Fallback to process.cwd(), then to the module project root
+ * 相对路径会拼接到选定根路径，绝对路径将被直接使用
+ * Relative paths are resolved against the chosen base, absolute paths are used directly
  */
 export async function getDataDir(): Promise<string> {
   const server = getGlobalServer();
@@ -54,12 +56,10 @@ export async function getDataDir(): Promise<string> {
         if (firstFileRoot) {
           // 从 file:// URI 中提取实际路径
           // Extract actual path from file:// URI
-          // Windows: file:///C:/path -> C:/path
-          // Unix: file:///path -> /path
-          if (process.platform === 'win32') {
-            rootPath = firstFileRoot.uri.replace("file:///", "").replace(/\//g, "\\");
-          } else {
-            rootPath = firstFileRoot.uri.replace("file://", "");
+          try {
+            rootPath = fileURLToPath(firstFileRoot.uri);
+          } catch {
+            // Silently ignore malformed URI
           }
         }
       }
@@ -68,35 +68,24 @@ export async function getDataDir(): Promise<string> {
     }
   }
 
+  if (!rootPath) {
+    rootPath = process.cwd();
+  }
+
   // 处理 process.env.DATA_DIR
   // Handle process.env.DATA_DIR
-  if (process.env.DATA_DIR) {
-    if (path.isAbsolute(process.env.DATA_DIR)) {
-      // 如果 DATA_DIR 是绝对路径，直接使用它不做任何修改
-      // If DATA_DIR is an absolute path, use it directly without any modification
-      return process.env.DATA_DIR;
-    } else {
-      // 如果 DATA_DIR 是相对路径，返回 "rootPath/DATA_DIR"
-      // If DATA_DIR is a relative path, return "rootPath/DATA_DIR"
-      if (rootPath) {
-        return path.join(rootPath, process.env.DATA_DIR);
-      } else {
-        // 如果没有 rootPath，使用 PROJECT_ROOT
-        // If there's no rootPath, use PROJECT_ROOT
-        return path.join(PROJECT_ROOT, process.env.DATA_DIR);
-      }
-    }
+  const dataDirEnv = process.env.DATA_DIR?.trim();
+  const dataDirSetting = dataDirEnv ? dataDirEnv : ".shrimp";
+
+  if (path.isAbsolute(dataDirSetting)) {
+    await mkdir(dataDirSetting, { recursive: true });
+    return dataDirSetting;
   }
 
-  // 如果没有 DATA_DIR，使用缺省逻辑
-  // If there's no DATA_DIR, use default logic
-  if (rootPath) {
-    return path.join(rootPath, "data");
-  }
-
-  // 最后回退到项目根目录
-  // Finally fall back to project root directory
-  return path.join(PROJECT_ROOT, "data");
+  const base = rootPath ?? PROJECT_ROOT;
+  const resolvedPath = path.resolve(base, dataDirSetting);
+  await mkdir(resolvedPath, { recursive: true });
+  return resolvedPath;
 }
 
 /**
@@ -115,15 +104,6 @@ export async function getTasksFilePath(): Promise<string> {
 export async function getMemoryDir(): Promise<string> {
   const dataDir = await getDataDir();
   return path.join(dataDir, "memory");
-}
-
-/**
- * 取得 WebGUI 文件路径
- * Get WebGUI file path
- */
-export async function getWebGuiFilePath(): Promise<string> {
-  const dataDir = await getDataDir();
-  return path.join(dataDir, "WebGUI.md");
 }
 
 /**

@@ -1,10 +1,9 @@
 import { z } from "zod";
-import path from "path";
-import { fileURLToPath } from "url";
 import { getAllTasks } from "../../models/taskModel.js";
 import { TaskStatus, Task } from "../../types/index.js";
 import { getPlanTaskPrompt } from "../../prompts/index.js";
 import { getGlobalServer, getMemoryDir } from "../../utils/paths.js";
+import { createPlanTaskErrorResponse } from "./taskErrorHelpers.js";
 
 // 开始规划工具
 // Start planning tool
@@ -35,111 +34,129 @@ export async function planTask({
   requirements,
   existingTasksReference = false,
 }: z.infer<typeof planTaskSchema>) {
-  // 获取基础目录路径
-  // Get base directory path
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const PROJECT_ROOT = path.resolve(__dirname, "../../..");
   const MEMORY_DIR = await getMemoryDir();
-
   const server = getGlobalServer();
   let finalRequirements = requirements;
+  let existingTaskStats:
+    | {
+        total: number;
+        completed: number;
+        pending: number;
+      }
+    | undefined;
 
-  if (!finalRequirements && server?.elicitInput) {
-    try {
-      const elicitation = await server.elicitInput({
-        message:
-          "是否要补充本次规划的技术/业务约束（可留空跳过）？",
-        requestedSchema: {
-          type: "object",
-          properties: {
-            requirements: {
-              type: "string",
-              title: "额外约束",
-              description:
-                "例如性能目标、接口依赖、上线窗口等（可选）",
+  try {
+    if (!finalRequirements && server?.elicitInput) {
+      try {
+        const elicitation = await server.elicitInput({
+          message:
+            "是否要补充本次规划的技术/业务约束（可留空跳过）？",
+          requestedSchema: {
+            type: "object",
+            properties: {
+              requirements: {
+                type: "string",
+                title: "额外约束",
+                description:
+                  "例如性能目标、接口依赖、上线窗口等（可选）",
+              },
             },
           },
-        },
-      });
+        });
 
-      if (
-        elicitation.action === "accept" &&
-        typeof elicitation.content?.requirements === "string"
-      ) {
-        const trimmed = elicitation.content.requirements.trim();
-        if (trimmed.length > 0) {
-          finalRequirements = trimmed;
-        }
-      }
-    } catch (error) {
-      console.warn(
-        "planTask elicitation failed",
-        error instanceof Error ? error.message : error
-      );
-    }
-  }
-
-  // 准备所需参数
-  // Prepare required parameters
-  let completedTasks: Task[] = [];
-  let pendingTasks: Task[] = [];
-
-  // 当 existingTasksReference 为 true 时，从数据库中加载所有任务作为参考
-  // When existingTasksReference is true, load all tasks from database as reference
-  if (existingTasksReference) {
-    try {
-      const allTasks = await getAllTasks();
-
-      // 将任务分为已完成和未完成两类
-      // Divide tasks into completed and incomplete categories
-      completedTasks = allTasks.filter(
-        (task) => task.status === TaskStatus.COMPLETED
-      );
-      pendingTasks = allTasks.filter(
-        (task) => task.status !== TaskStatus.COMPLETED
-      );
-    } catch (error) {}
-  }
-
-  // 使用prompt生成器获取最终prompt
-  // Use prompt generator to get the final prompt
-  const prompt = await getPlanTaskPrompt({
-    description,
-    requirements: finalRequirements,
-    existingTasksReference,
-    completedTasks,
-    pendingTasks,
-    memoryDir: MEMORY_DIR,
-  });
-
-  const structuredContent = {
-    kind: "taskManager.plan" as const,
-    payload: {
-      markdown: prompt,
-      prompt,
-      ...(finalRequirements
-        ? { requirements: finalRequirements }
-        : {}),
-      ...(existingTasksReference
-        ? {
-            existingTaskStats: {
-              total: completedTasks.length + pendingTasks.length,
-              completed: completedTasks.length,
-              pending: pendingTasks.length,
-            },
+        if (
+          elicitation.action === "accept" &&
+          typeof elicitation.content?.requirements === "string"
+        ) {
+          const trimmed = elicitation.content.requirements.trim();
+          if (trimmed.length > 0) {
+            finalRequirements = trimmed;
           }
-        : {}),
-    },
-  };
+        }
+      } catch (error) {
+        console.warn(
+          "planTask elicitation failed",
+          error instanceof Error ? error.message : error
+        );
+      }
+    }
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: prompt,
+    // 准备所需参数
+    // Prepare required parameters
+    let completedTasks: Task[] = [];
+    let pendingTasks: Task[] = [];
+
+    // 当 existingTasksReference 为 true 时，从数据库中加载所有任务作为参考
+    // When existingTasksReference is true, load all tasks from database as reference
+    if (existingTasksReference) {
+      try {
+        const allTasks = await getAllTasks();
+
+        // 将任务分为已完成和未完成两类
+        // Divide tasks into completed and incomplete categories
+        completedTasks = allTasks.filter(
+          (task) => task.status === TaskStatus.COMPLETED
+        );
+        pendingTasks = allTasks.filter(
+          (task) => task.status !== TaskStatus.COMPLETED
+        );
+        existingTaskStats = {
+          total: completedTasks.length + pendingTasks.length,
+          completed: completedTasks.length,
+          pending: pendingTasks.length,
+        };
+      } catch (error) {
+        existingTaskStats = undefined;
+      }
+    }
+
+    // 使用prompt生成器获取最终prompt
+    // Use prompt generator to get the final prompt
+    const prompt = await getPlanTaskPrompt({
+      description,
+      requirements: finalRequirements,
+      existingTasksReference,
+      completedTasks,
+      pendingTasks,
+      memoryDir: MEMORY_DIR,
+    });
+
+    const structuredContent = {
+      kind: "taskManager.plan" as const,
+      payload: {
+        markdown: prompt,
+        prompt,
+        ...(finalRequirements
+          ? { requirements: finalRequirements }
+          : {}),
+        ...(existingTasksReference && existingTaskStats
+          ? { existingTaskStats }
+          : {}),
       },
-    ],
-    structuredContent,
-  };
+    };
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: prompt,
+        },
+      ],
+      structuredContent,
+    };
+  } catch (error) {
+    const message = `plan_task 执行失败：${
+      error instanceof Error ? error.message : String(error)
+    }`;
+    return createPlanTaskErrorResponse({
+      message,
+      errorCode: "E_UNEXPECTED",
+      details:
+        error instanceof Error && error.stack
+          ? [error.stack]
+          : undefined,
+      requirements: finalRequirements,
+      existingTaskStats,
+    });
+  }
 }

@@ -37,7 +37,7 @@ export interface QueryTaskPromptParams {
 export async function getQueryTaskPrompt(
   params: QueryTaskPromptParams
 ): Promise<string> {
-  const { query, isId, tasks, totalTasks, page, pageSize, totalPages } = params;
+  const { query, tasks, totalTasks, page, pageSize, totalPages } = params;
 
   if (tasks.length === 0) {
     const notFoundTemplate = await loadPromptFromTemplate(

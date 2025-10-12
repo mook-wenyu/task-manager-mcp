@@ -1,6 +1,6 @@
-# Contributing to MCP Shrimp Task Manager
+# Contributing to Mook Task Manager MCP
 
-First off, thank you for considering contributing to MCP Shrimp Task Manager! It's people like you that make this such a great tool. We welcome any and all contributions.
+First off, thank you for considering contributing to Mook Task Manager MCP! It's people like you that make this such a great tool. We welcome any and all contributions.
 
 ## Code of Conduct
 
@@ -12,7 +12,7 @@ There are many ways to contribute, from writing tutorials or blog posts, improvi
 
 ### Reporting Bugs
 
-If you find a bug, you can either open an issue on our [GitHub repository](https://github.com/cjo4m06/mcp-shrimp-task-manager/issues) or submit a direct pull request with the fix. For more complex bugs that require discussion, opening an issue first is recommended.
+If you find a bug, you can either open an issue on our [GitHub repository](https://github.com/mook-wenyu/task-manager-mcp/issues) or submit a direct pull request with the fix. For more complex bugs that require discussion, opening an issue first is recommended.
 
 Here is a template you can use if you choose to open an issue:
 
@@ -33,7 +33,7 @@ A clear and concise description of what you expected to happen.
 **Environment (please complete the following information):**
  - **OS**: [e.g. macOS, Linux, Windows]
  - **Client**: [e.g. Cursor, Claude Code, custom script]
- - **MCP Shrimp Task Manager Version**: [e.g. 1.0.19]
+ - **Mook Task Manager MCP Version**: [e.g. 1.0.21]
 
 **Additional context**
 Add any other logs or context about the problem here.
@@ -41,7 +41,7 @@ Add any other logs or context about the problem here.
 
 ### Suggesting Enhancements
 
-If you have an idea for a new feature or an enhancement to an existing one, you can either open an issue on our [GitHub repository](https://github.com/cjo4m06/mcp-shrimp-task-manager/issues) to discuss it, or submit a direct pull request for straightforward additions. For significant features that may impact the architecture, it's advisable to open an issue for discussion beforehand.
+If you have an idea for a new feature or an enhancement to an existing one, you can either open an issue on our [GitHub repository](https://github.com/mook-wenyu/task-manager-mcp/issues) to discuss it, or submit a direct pull request for straightforward additions. For significant features that may impact the architecture, it's advisable to open an issue for discussion beforehand.
 
 Here is a template you can use if you choose to open an issue:
 
@@ -61,10 +61,10 @@ Add any other context or mock-ups about the feature request here.
 
 ### Your First Code Contribution
 
-Unsure where to begin contributing to MCP Shrimp Task Manager? You can start by looking through these `good-first-issue` and `help-wanted` issues:
+Unsure where to begin contributing to Mook Task Manager MCP? You can start by looking through these `good-first-issue` and `help-wanted` issues:
 
--   [Good first issues](https://github.com/cjo4m06/mcp-shrimp-task-manager/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) - issues which should only require a few lines of code, and a test or two.
--   [Help wanted issues](https://github.com/cjo4m06/mcp-shrimp-task-manager/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) - issues which should be a bit more involved than `good-first-issue` issues.
+-   [Good first issues](https://github.com/mook-wenyu/task-manager-mcp/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) - issues which should only require a few lines of code, and a test or two.
+-   [Help wanted issues](https://github.com/mook-wenyu/task-manager-mcp/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) - issues which should be a bit more involved than `good-first-issue` issues.
 
 ## Contribution Workflow and Pull Requests
 
@@ -78,9 +78,9 @@ Since this project maintains a clean commit history and a focused development pa
 6.  **Commit**: Commit your changes with a descriptive message that follows the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) format.
 7.  **Push**: Push your branch to your forked repository.
 8.  **Open a Pull Request**:
-    - Navigate to the [main repository](https://github.com/cjo4m06/mcp-shrimp-task-manager/pulls) and open a new pull request from your forked branch.
+    - Navigate to the [main repository](https://github.com/mook-wenyu/task-manager-mcp/pulls) and open a new pull request from your forked branch.
     - GitHub will automatically populate the PR description with our template. Please fill it out as completely as possible. The more context you provide, the faster your PR can be reviewed.
-9.  **Code Review**: The repository owner (`@cjo4m06`) will review your pull request. They may ask for changes or clarification.
+9.  **Code Review**: The repository owner (`@mook-wenyu`) will review your pull request. They may ask for changes or clarification.
 10. **Merge**: Once the PR is approved, the owner will merge it into the `main` branch. We do not allow contributors to merge their own PRs.
 
 As a part of the review process, please ensure your PR includes:
@@ -90,6 +90,6 @@ As a part of the review process, please ensure your PR includes:
 
 ### Testing
 
-As noted in PR [#35](https://github.com/cjo4m06/mcp-shrimp-task-manager/pull/35), we are in the process of migrating our testing framework to [Vitest](https://vitest.dev/). For any new code contributions, please include tests written with Vitest. This will help us accelerate the transition and ensure the quality of our codebase.
+As noted in PR [#35](https://github.com/mook-wenyu/task-manager-mcp/pull/35), we are in the process of migrating our testing framework to [Vitest](https://vitest.dev/). For any new code contributions, please include tests written with Vitest. This will help us accelerate the transition and ensure the quality of our codebase.
 
 Thank you for your contribution!

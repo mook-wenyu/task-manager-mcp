@@ -230,7 +230,6 @@ describe('agentMatcher', () => {
 
   describe('keyword scoring', () => {
     it('should give higher scores for multiple keyword matches', () => {
-      const agents = createTestAgents();
       const task1 = createTestTask('React task', 'Simple React component update');
       const task2 = createTestTask(
         'Complex React task',

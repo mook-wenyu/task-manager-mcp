@@ -106,7 +106,8 @@ export function generatePrompt(
 export async function loadPromptFromTemplate(
   templatePath: string
 ): Promise<string> {
-  const templateSetName = process.env.TEMPLATES_USE || "en";
+  const defaultTemplateSet = "zh";
+  const templateSetName = process.env.TEMPLATES_USE || defaultTemplateSet;
   const dataDir = await getDataDir();
   const builtInTemplatesBaseDir = __dirname;
 
@@ -140,8 +141,24 @@ export async function loadPromptFromTemplate(
     }
   }
 
-  // 3. 如果特定的内置模板也未找到，且不是 'en' (避免重复检查)
-  // 3. If specific built-in template is also not found and not 'en' (avoid duplicate checking)
+  // 3. 如果特定的内置模板也未找到，且不是默认模板 (避免重复检查)
+  // 3. If specific built-in template is also not found and not the default template (avoid duplicate checking)
+  if (!finalPath && templateSetName !== defaultTemplateSet) {
+    const defaultBuiltInFilePath = path.join(
+      builtInTemplatesBaseDir,
+      `templates_${defaultTemplateSet}`,
+      templatePath
+    );
+    checkedPaths.push(
+      `Default Built-in ('${defaultTemplateSet}'): ${defaultBuiltInFilePath}`
+    );
+    if (fs.existsSync(defaultBuiltInFilePath)) {
+      finalPath = defaultBuiltInFilePath;
+    }
+  }
+
+  // 4. 最后尝试回退到英文模板
+  // 4. Finally try falling back to English templates
   if (!finalPath && templateSetName !== "en") {
     const defaultBuiltInFilePath = path.join(
       builtInTemplatesBaseDir,
@@ -154,8 +171,8 @@ export async function loadPromptFromTemplate(
     }
   }
 
-  // 4. 如果所有路径都找不到模板，抛出错误
-  // 4. If template is not found in all paths, throw error
+  // 5. 如果所有路径都找不到模板，抛出错误
+  // 5. If template is not found in all paths, throw error
   if (!finalPath) {
     throw new Error(
       `Template file not found: '${templatePath}' in template set '${templateSetName}'. Checked paths:\n - ${checkedPaths.join(
@@ -164,7 +181,7 @@ export async function loadPromptFromTemplate(
     );
   }
 
-  // 5. 读取找到的文档
-  // 5. Read the found file
+  // 6. 读取找到的文档
+  // 6. Read the found file
   return fs.readFileSync(finalPath, "utf-8");
 }

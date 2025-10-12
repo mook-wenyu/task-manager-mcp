@@ -1,6 +1,16 @@
-[English](CHANGELOG.md) | [中文](docs/zh-CN/CHANGELOG.md)
+[English](CHANGELOG.md)
 
 # Changelog
+
+## [Unreleased]
+
+### Removed
+
+- Deprecated the standalone Task Viewer client and removed all related assets, focusing the project on极简命令行工作流。
+
+### Changed
+
+- Updated documentation（README、PLAN、RISKS、TASKS、AGENTS）以说明 GUI/Task Viewer 已停用，并收敛配置示例至 DATA_DIR/TEMPLATES_USE。
 
 ## [1.0.21] - 2025-01-13
 
@@ -23,7 +33,7 @@
 ### Enhanced
 
 - **Main README**: Added Task Viewer section with feature highlights and links
-- **Documentation**: Complete setup guide and usage instructions for Task Viewer
+- **Documentation**: Complete setup guide and usage instructions for Task Viewer（见 `tools/task-viewer` 目录内文档）
 - **Visual Assets**: Professional screenshot showing the new interface
 
 ### Technical

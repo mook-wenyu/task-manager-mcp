@@ -209,27 +209,6 @@ export async function updateTaskContent({
     );
   }
 
-  // 记录要更新的任务和内容
-  // Record the task and content to be updated
-  let updateSummary = `准备更新任务：${task.name} (ID: ${task.id})`;
-  // Preparing to update task: ${task.name} (ID: ${task.id})
-  if (name) updateSummary += `，新名称：${name}`;
-  // , new name: ${name}
-  if (description) updateSummary += `，更新描述`;
-  // , update description
-  if (notes) updateSummary += `，更新注记`;
-  // , update notes
-  if (relatedFiles)
-    updateSummary += `，更新相关文档 (${relatedFiles.length} 个)`;
-    // , update related files (${relatedFiles.length} files)
-  if (dependencies)
-    updateSummary += `，更新依赖关系 (${dependencies.length} 个)`;
-    // , update dependencies (${dependencies.length} items)
-  if (implementationGuide) updateSummary += `，更新实现指南`;
-  // , update implementation guide
-  if (verificationCriteria) updateSummary += `，更新验证标准`;
-  // , update verification criteria
-
   // 运行更新操作
   // Execute update operation
   const result = await modelUpdateTaskContent(taskId, {

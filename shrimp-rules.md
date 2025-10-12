@@ -1,15 +1,15 @@
 # 开发守则
 
-本文档为 AI Agent 在 `mcp-shrimp-task-manager` 项目中执行开发任务的专用规范。
+本文档为 AI Agent 在 `task-manager-mcp` 项目中执行开发任务的专用规范。
 
 ## 1. 项目概述
 
-- **项目名称**: `mcp-shrimp-task-manager`
+- **项目名称**: `task-manager-mcp`
 - **目的**: 一个为 AI Agents 设计的任务管理工具，强调思维链、反思和风格一致性。它将自然语言转换为结构化的开发任务，并具有依赖跟踪和迭代优化功能。
 - **技术栈**:
   - 主要语言: TypeScript
   - 执行环境: Node.js (ES Module)
-  - 主要框架/函数库: Express.js (用于可能的 API 或 WebGUI), Zod (用于数据验证)
+  - 主要框架/函数库: Zod (用于数据验证；Express.js 仅在历史 GUI 扩展中使用，当前默认关闭)
   - 包管理器: npm
 - **核心功能**:
   - 自然语言任务解析
@@ -27,18 +27,18 @@
   - `src/tools/`: 项目特定工具或与外部服务集成的模块。
   - `src/models/`: 数据模型定义 (可能与 Zod schemas 相关)。
   - `src/prompts/`: AI 互动相关的提示词模板。**修改或添加提示词时，需考虑对 AI Agent 行为的潜在影响。**
-  - `src/public/`: WebGUI 或其他静态资源。
   - `src/tests/`: 单元测试和集成测试。
 - **编译输出目录**: `dist/` (此目录由 `tsc` 自动生成，**禁止手动修改此目录内容**)。
 - **设置档**:
   - `package.json`: 项目依赖和脚本。**添加依赖后，必须执行 `npm install`。**
   - `tsconfig.json`: TypeScript 编译设置。**非必要情况下，禁止修改 `"strict": true` 设置。**
   - `.env.example` & `.env`: 环境变数设置。**敏感信息不得提交至版本控制。**
+- **数据目录**: `.shrimp/` 为默认 `DATA_DIR`，仅存放任务与记忆数据。**禁止在此目录内创建 `.git`、`.gitignore` 或其他版本控制元数据**，如需备份应由业务逻辑或外部存储负责。
 - **文档**:
   - `README.md`: 主要项目说明文档。
   - `docs/`: 可能包含更详细的架构、API 文档等。
   - `CHANGELOG.md`: 版本变更纪录。**每次发布新版本前必须更新。**
-  - `data/WebGUI.md`: 包含 Task Manager UI 的链接。
+  - 历史版本会在数据目录生成 `WebGUI.md` 指向浏览器界面；当前极简版本无需该文件。
 
 ## 3. 程序码规范
 
@@ -128,7 +128,7 @@
     export type Task = z.infer<typeof TaskSchema>;
     ```
 
-### 4.3. Express.js 使用 (若有 API/WebGUI)
+### 4.3. Express.js 使用 (如需额外 API)
 
 - 路由定义应清晰且遵循 RESTful 原则 (若为 API)。
 - 中介软体 (Middleware) 应有效组织，例如错误处理中介软体、日志中介软体等。
@@ -248,4 +248,4 @@
 
 ---
 
-此开发守则旨在确保 AI Agent 能够高效、一致且安全地参与 `mcp-shrimp-task-manager` 项目的开发。
+此开发守则旨在确保 AI Agent 能够高效、一致且安全地参与 `task-manager-mcp` 项目的开发。

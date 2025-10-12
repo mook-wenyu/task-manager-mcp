@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getAnalyzeTaskPrompt } from "../../prompts/index.js";
+import { createAnalyzeTaskErrorResponse } from "./taskErrorHelpers.js";
 
 // 分析问题工具
 // Task analysis tool
@@ -37,31 +38,46 @@ export async function analyzeTask({
   initialConcept,
   previousAnalysis,
 }: z.infer<typeof analyzeTaskSchema>) {
-  // 使用prompt生成器获取最终prompt
-  // Use prompt generator to get the final prompt
-  const prompt = await getAnalyzeTaskPrompt({
-    summary,
-    initialConcept,
-    previousAnalysis,
-  });
-
-  const structuredContent = {
-    kind: "taskManager.analyze" as const,
-    payload: {
-      markdown: prompt,
+  try {
+    // 使用prompt生成器获取最终prompt
+    // Use prompt generator to get the final prompt
+    const prompt = await getAnalyzeTaskPrompt({
       summary,
       initialConcept,
-      ...(previousAnalysis ? { previousAnalysis } : {}),
-    },
-  };
+      previousAnalysis,
+    });
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: prompt,
+    const structuredContent = {
+      kind: "taskManager.analyze" as const,
+      payload: {
+        markdown: prompt,
+        summary,
+        initialConcept,
+        ...(previousAnalysis ? { previousAnalysis } : {}),
       },
-    ],
-    structuredContent,
-  };
+    };
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: prompt,
+        },
+      ],
+      structuredContent,
+    };
+  } catch (error) {
+    const message = `analyze_task 执行失败：${
+      error instanceof Error ? error.message : String(error)
+    }`;
+    return createAnalyzeTaskErrorResponse({
+      message,
+      errorCode: "E_UNEXPECTED",
+      details:
+        error instanceof Error && error.stack ? [error.stack] : undefined,
+      summary,
+      initialConcept,
+      previousAnalysis,
+    });
+  }
 }

@@ -32,6 +32,7 @@ build/
 .claude/
 .codex/
 .shrimp/
+docs/
 logs/
 *.log
 npm-debug.log*
@@ -72,5 +73,3 @@ data/*
 Screenshots/
 /Screenshots
 
-# Task viewer history and agents
-tools/task-viewer/history-and-agents/

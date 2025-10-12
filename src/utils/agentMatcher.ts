@@ -148,7 +148,6 @@ function findBestCapabilityMatch(
 function calculateKeywordScore(text: string, keywords: string[], weight: number, agentType?: string): number {
   const lowerText = text.toLowerCase();
   let score = 0;
-  let matchCount = 0;
   
   for (const keyword of keywords) {
     const lowerKeyword = keyword.toLowerCase();
@@ -159,7 +158,6 @@ function calculateKeywordScore(text: string, keywords: string[], weight: number,
     const matches = lowerText.match(regex);
     
     if (matches) {
-      matchCount += matches.length;
       // Give higher score for exact matches vs partial matches
       let keywordScore = matches.length * weight;
       

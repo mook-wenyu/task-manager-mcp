@@ -457,7 +457,7 @@ Filename,Line Number,Chinese Comment,English Translation"src/index.ts",15,"// �
 "src/web/webServer.ts",162,"// 设置进程终止事件处理 (确保移除 watcher)","// Set up process termination event handling (ensure watcher removal)"
 "src/web/webServer.ts",165,"// 关闭所有 SSE 连接","// Close all SSE connections"
 "src/web/webServer.ts",170,"// 关闭 HTTP 服务器","// Close HTTP server"
-"docs/css/styles.css",1,"/* MCP Shrimp Task Manager 网站样式 */","/* MCP Shrimp Task Manager Website Styles */"
+"docs/css/styles.css",1,"/* Mook Task Manager MCP 网站样式 */","/* Mook Task Manager MCP Website Styles */"
 "docs/css/styles.css",4,"/* 全局变量 */","/* Global Variables */"
 "docs/css/styles.css",24,"/* 全局样式 */","/* Global Styles */"
 "docs/css/styles.css",28,"overflow-x: hidden; /* 防止水平溢出 */","/* Prevent horizontal overflow */"

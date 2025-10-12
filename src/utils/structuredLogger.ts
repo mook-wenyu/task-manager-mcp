@@ -9,15 +9,24 @@ export type ToolLogEntry = {
   errorCode?: string;
 };
 
-const LOG_TYPE = "tool_invocation";
-
 export function logToolInvocation(entry: ToolLogEntry) {
-  const payload = {
-    type: LOG_TYPE,
-    timestamp: new Date().toISOString(),
-    ...entry,
-  };
+  if (entry.status === "success") {
+    return;
+  }
 
-  // 保持标准 JSON 输出，记录到 stderr 以符合 MCP stdio 约束
-  process.stderr.write(`${JSON.stringify(payload)}\n`);
+  const segments = [
+    `[${entry.toolName}]`,
+    `${entry.status}`,
+    `${entry.durationMs}ms`,
+  ];
+
+  if (entry.errorCode) {
+    segments.push(`code=${entry.errorCode}`);
+  }
+
+  if (entry.errorMessage) {
+    segments.push(entry.errorMessage);
+  }
+
+  process.stderr.write(`${segments.join(" | ")}\n`);
 }

@@ -9,6 +9,8 @@ const MarkdownPayloadSchema = z.object({
   markdown: z.string().min(1, "markdown 内容不能为空"),
   title: z.string().optional(),
   summary: z.string().optional(),
+  errorCode: z.string().optional(),
+  errors: z.array(z.string()).optional(),
 });
 
 const RelatedFileSchema = z.object({
@@ -72,6 +74,7 @@ const SplitTasksUpdateModeSchema = z.enum([
   "selective",
   "clearAllTasks",
 ]);
+
 export const PlanTaskStructuredSchema = z.object({
   kind: z.literal("taskManager.plan"),
   payload: MarkdownPayloadSchema.extend({
@@ -113,6 +116,8 @@ export const SplitTasksStructuredSchema = z.object({
     createdTasks: z.array(TaskDetailSchema).optional(),
     allTasks: z.array(TaskDetailSchema).optional(),
     backupFilePath: z.string().optional(),
+    errorCode: z.string().optional(),
+    errors: z.array(z.string()).optional(),
   }),
 });
 
@@ -223,13 +228,6 @@ export const InitProjectRulesStructuredSchema = z.object({
   }),
 });
 
-const ResourceLinkSchema = z.object({
-  uri: z.string(),
-  name: z.string(),
-  mimeType: z.string().optional(),
-  description: z.string().optional(),
-});
-
 export const ResearchModeStructuredSchema = z.object({
   kind: z.literal("taskManager.research"),
   payload: MarkdownPayloadSchema.extend({
@@ -238,7 +236,6 @@ export const ResearchModeStructuredSchema = z.object({
     currentState: z.string(),
     nextSteps: z.string(),
     memoryDir: z.string().optional(),
-    resourceLinks: z.array(ResourceLinkSchema).optional(),
   }),
 });
 

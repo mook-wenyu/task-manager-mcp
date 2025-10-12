@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getReflectTaskPrompt } from "../../prompts/index.js";
+import { createReflectTaskErrorResponse } from "./taskErrorHelpers.js";
 
 // 反思构想工具
 // Task reflection tool
@@ -28,29 +29,43 @@ export async function reflectTask({
   summary,
   analysis,
 }: z.infer<typeof reflectTaskSchema>) {
-  // 使用prompt生成器获取最终prompt
-  // Use prompt generator to get the final prompt
-  const prompt = await getReflectTaskPrompt({
-    summary,
-    analysis,
-  });
-
-  const structuredContent = {
-    kind: "taskManager.reflect" as const,
-    payload: {
-      markdown: prompt,
+  try {
+    // 使用prompt生成器获取最终prompt
+    // Use prompt generator to get the final prompt
+    const prompt = await getReflectTaskPrompt({
       summary,
       analysis,
-    },
-  };
+    });
 
-  return {
-    content: [
-      {
-        type: "text" as const,
-        text: prompt,
+    const structuredContent = {
+      kind: "taskManager.reflect" as const,
+      payload: {
+        markdown: prompt,
+        summary,
+        analysis,
       },
-    ],
-    structuredContent,
-  };
+    };
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: prompt,
+        },
+      ],
+      structuredContent,
+    };
+  } catch (error) {
+    const message = `reflect_task 执行失败：${
+      error instanceof Error ? error.message : String(error)
+    }`;
+    return createReflectTaskErrorResponse({
+      message,
+      errorCode: "E_UNEXPECTED",
+      details:
+        error instanceof Error && error.stack ? [error.stack] : undefined,
+      summary,
+      analysis,
+    });
+  }
 }

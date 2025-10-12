@@ -12,4 +12,8 @@
 | T8 | 拆分 `structuredContent` 工具为序列化/统计/校验模块 | 已完成 | Codex | T3 | 代码完成拆分并新增单元测试覆盖关键分支 |
 | T9 | 设计结构化日志与指标输出方案 | 已完成 | Codex | T3 | `METRICS.md` 与 `RISKS.md` 更新日志策略及监控指标 |
 | T10 | 记忆管理优化设计与 PoC（详见 `docs/memory-management-plan.md`） | 已完成 | Codex | T6,T8 | 基准脚本产出压缩率58%、命中率1.0，并更新文档与指标 |
-| T11 | 协议新特性对齐（elicitation、resource_link、协议头，见 `docs/protocol-upgrade-plan.md`） | 已完成 | Codex | T2,T7 | `plan_task` 支持 elicitation、`research_mode` 输出 resource_link，新增协议校验及测试 |
+| T11 | 协议新特性对齐（elicitation、协议头） | 已完成 | Codex | T2,T7 | `plan_task` 支持 elicitation、`research_mode` 输出嵌入式研究上下文，新增协议校验及测试 |
+| T12 | 恢复 GA/协议所需文档与脚本（docs/*、scripts/*、reports/*） | 已完成 | Codex | T6,T7 | 缺失文件从 `origin/main` 还原，`PLAN.md` 记录恢复结果，`npm run lint`/`build`/`test` 通过 |
+| T13 | 对齐 Task Manager 与检查点文件（PLAN/TASKS/RISKS/METRICS） | 进行中 | Codex | T12 | Task Manager 任务与文档描述一致，新增 T14~T17 依赖链并同步验收标准 |
+| T14 | 拆解日志/记忆稳健化迭代（极简形态） | 待启动 | Codex | T13 | 明确日志精简方案、记忆裁剪策略与 CLI 提示词更新项，并产出实施计划 |
+| T15 | 规划事件总线治理与 Golden Path 门户迭代 | 待启动 | Codex | T13 | 输出事件总线 Schema/压测计划与门户结构草案，补充指标与风险 |

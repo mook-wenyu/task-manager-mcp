@@ -1,29 +1,27 @@
 {
-  "name": "mcp-shrimp-task-manager",
+  "name": "mook-task-manager",
   "version": "1.0.21",
-  "description": "Shrimp Task Manager is a task tool built for AI Agents, emphasizing chain-of-thought, reflection, and style consistency. It converts natural language into structured dev tasks with dependency tracking and iterative refinement, enabling agent-like developer behavior in reasoning AI systems",
+  "description": "Mook Task Manager MCP helps AI agents turn natural language into structured development plans with dependency tracking, reflection, and consistent execution flows.",
   "main": "dist/index.js",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cjo4m06/mcp-shrimp-task-manager"
+    "url": "https://github.com/mook-wenyu/task-manager-mcp"
   },
   "bugs": {
-    "url": "https://github.com/cjo4m06/mcp-shrimp-task-manager/issues"
+    "url": "https://github.com/mook-wenyu/task-manager-mcp/issues"
   },
-  "homepage": "https://cjo4m06.github.io/mcp-shrimp-task-manager",
+  "homepage": "https://github.com/mook-wenyu/task-manager-mcp",
   "bin": {
-    "mcp-shrimp-task-manager": "./dist/index.js"
+    "mook-task-manager": "./dist/index.js"
   },
   "scripts": {
-    "build": "tsc && copyfiles -u 1 \"src/**/*.md\" dist && copyfiles -u 1 \"src/public/**/*\" dist && node scripts/add-shebang.js",
+    "build": "tsc && copyfiles -u 1 \"src/**/*.md\" dist && node scripts/add-shebang.js",
     "dev": "ts-node src/index.ts",
     "start": "node dist/index.js",
     "test": "vitest",
     "test:coverage": "vitest --coverage",
-    "test:memory": "node scripts/bench-memory.mjs",
-    "handshake": "node scripts/verify-handshake.mjs",
-    "inspect": "node scripts/run-inspector.mjs"
+    "lint": "eslint --ext .ts src tests --max-warnings=0 --no-error-on-unmatched-pattern"
   },
   "keywords": [
     "mcp",
@@ -50,6 +48,11 @@
     "copyfiles": "^2.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.2.2",
-    "vitest": "^1.0.0"
+    "vitest": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.16.1",
+    "@typescript-eslint/parser": "^7.16.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-vitest": "^0.5.4"
   }
 }

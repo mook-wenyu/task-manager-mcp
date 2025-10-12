@@ -81,3 +81,8 @@ These tasks will be executed by low-intelligence models, so please follow the gu
 - `Clear and Explicit Instructions`: This prevents the model from producing incorrect or inconsistent architecture/code styles. Provide clear commands or specifications.
 - `Encapsulated Interfaces`: Each task runs independently. Define the interfaces clearly — such as function names, parameters, return values — so that other task-executing models can easily understand how to interact with or integrate these functions.
 - `Dependencies`: If there are dependencies between tasks, define the interaction interfaces first. Tasks do not need to know each other's implementation, but must know how to interact with one another.
+
+## 7. **Error Feedback**
+
+- The tool returns structured errors with `errorCode` (e.g., `E_PARSE`, `E_VALIDATE`, `E_DUPLICATE_NAME`, `E_CLEAR_ALL`) and an `errors` array for detailed hints.
+- When a call fails, adjust the payload according to the error code and retry; if you need consistency guidance, consult project standards (such as `shrimp-rules.md`) or the previous split output.

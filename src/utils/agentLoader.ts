@@ -1,11 +1,8 @@
 import fs from "fs/promises";
 import path from "path";
-import { fileURLToPath } from "url";
+import { getDataDir } from "./paths.js";
 
 // Get project root directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const PROJECT_ROOT = path.resolve(__dirname, "../..");
 
 // Agent interface
 export interface Agent {
@@ -24,7 +21,8 @@ export interface Agent {
 export async function loadGlobalAgents(): Promise<Agent[]> {
   try {
     // Try to load global settings to get Claude folder path
-    const globalSettingsPath = path.join(PROJECT_ROOT, "tools", "task-viewer", "data", "global-settings.json");
+    const dataDir = await getDataDir();
+    const globalSettingsPath = path.join(dataDir, "task-viewer", "global-settings.json");
     
     let claudeFolderPath = "";
     try {

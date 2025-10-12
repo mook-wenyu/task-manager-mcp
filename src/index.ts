@@ -2,11 +2,10 @@ import "dotenv/config";
 import { loadPromptFromTemplate } from "./prompts/loader.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { InitializedNotificationSchema, type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { performance } from "node:perf_hooks";
 import type { ZodRawShape } from "zod";
 import { setGlobalServer } from "./utils/paths.js";
-import { createWebServer } from "./web/webServer.js";
 import {
   TOOL_STRUCTURED_SCHEMAS,
   validateStructuredContent,
@@ -298,12 +297,9 @@ async function registerTools(server: McpServer): Promise<void> {
 
 async function main() {
   try {
-    const ENABLE_GUI = process.env.ENABLE_GUI === "true";
-    let webServerInstance: Awaited<ReturnType<typeof createWebServer>> | null = null;
-
     const server = new McpServer(
       {
-        name: "Shrimp Task Manager",
+        name: "Mook Task Manager MCP",
         version: "1.0.0",
       },
       {
@@ -322,24 +318,10 @@ async function main() {
 
     await registerTools(server);
 
-    if (ENABLE_GUI) {
-      server.server.setNotificationHandler(
-        InitializedNotificationSchema,
-        async () => {
-          try {
-            webServerInstance = await createWebServer();
-            await webServerInstance.startServer();
-          } catch (error) {
-            console.error("初始化后启动 GUI 服务失败", error);
-          }
-        }
-      );
-    }
-
     const transport = new StdioServerTransport();
     await server.connect(transport);
   } catch (error) {
-    console.error("Shrimp Task Manager 服务器启动失败", error);
+    console.error("Mook Task Manager MCP 服务器启动失败", error);
     process.exit(1);
   }
 }

@@ -1,6 +1,4 @@
 import { z } from "zod";
-import path from "path";
-import { fileURLToPath, pathToFileURL } from "url";
 import { getResearchModePrompt } from "../../prompts/index.js";
 import { getMemoryDir } from "../../utils/paths.js";
 
@@ -45,9 +43,6 @@ export async function researchMode({
 }: z.infer<typeof researchModeSchema>) {
   // 获取基础目录路径
   // Get base directory path
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = path.dirname(__filename);
-  const PROJECT_ROOT = path.resolve(__dirname, "../../..");
   const MEMORY_DIR = await getMemoryDir();
 
   // 使用prompt生成器获取最终prompt
@@ -60,25 +55,12 @@ export async function researchMode({
     memoryDir: MEMORY_DIR,
   });
 
-  const toolContractsUri = pathToFileURL(
-    path.join(PROJECT_ROOT, "docs", "TOOL-OUTPUT-CONTRACTS.md")
-  ).href;
-
-  const resourceLink = {
-    type: "resource_link" as const,
-    uri: toolContractsUri,
-    name: "docs/TOOL-OUTPUT-CONTRACTS.md",
-    mimeType: "text/markdown",
-    description: "工具输出契约参考",
-  };
-
   return {
     content: [
       {
         type: "text" as const,
         text: prompt,
       },
-      resourceLink,
     ],
     structuredContent: {
       kind: "taskManager.research" as const,
@@ -89,14 +71,6 @@ export async function researchMode({
         currentState,
         nextSteps,
         memoryDir: MEMORY_DIR,
-        resourceLinks: [
-          {
-            uri: toolContractsUri,
-            name: "docs/TOOL-OUTPUT-CONTRACTS.md",
-            mimeType: "text/markdown",
-            description: "工具输出契约参考",
-          },
-        ],
       },
     },
   };
