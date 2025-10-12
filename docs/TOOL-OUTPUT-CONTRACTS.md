@@ -9,7 +9,7 @@
 ## 工具明细
 | 工具名 | kind | 关键字段 | 数据来源 | 校验/测试 | 状态 |
 | --- | --- | --- | --- | --- | --- |
-| plan_task | taskManager.plan | prompt, existingTaskStats | getPlanTaskPrompt, getAllTasks | schema + 快照 | 已实现 |
+| plan_task | taskManager.plan | prompt, requirements, existingTaskStats | getPlanTaskPrompt, getAllTasks | schema + 快照 | 已实现 |
 | analyze_task | taskManager.analyze | summary, concept, previousAnalysis | 入参 + prompt | schema + 快照 | 已实现 |
 | reflect_task | taskManager.reflect | reflections, followUps | getReflectTaskPrompt, 入参 | schema + 快照 | 已实现 |
 | split_tasks | taskManager.split | updateMode, createdTasks, backupFile, message | batchCreateOrUpdateTasks 等 | schema + 数据断言 | 已实现 |
@@ -23,7 +23,8 @@
 | get_task_detail | taskManager.detail | task | getTaskDetail | schema + 数据断言 | 已实现 |
 | process_thought | taskManager.thought | stage, totalThoughts, summary | processThoughtSchema 入参 | schema + 快照 | 已实现 |
 | init_project_rules | taskManager.projectRules | createdFiles, warnings | initProjectRules | schema + 文件断言 | 已实现 |
-| research_mode | taskManager.research | topic, currentState, nextSteps | researchMode | schema + 快照 | 已实现 |
+| research_mode | taskManager.research | topic, currentState, nextSteps, resourceLinks | researchMode | schema + 快照 | 已实现 |
+| memory_replay | taskManager.memoryReplay | scope, limit, entries, filters | memoryStore.listRecent | schema + 单元测试 | 已实现 |
 
 ## 后续行动
 - 针对客户端联调补充握手示例，记录于 `docs/UPGRADE-SDK-1.20.0.md`。

@@ -157,3 +157,36 @@ export interface TaskComplexityAssessment {
   recommendations: string[]; // 处理建议列表
   // recommendations: string[]; // List of processing recommendations
 }
+
+// 记忆缓存作用域
+// Memory cache scope
+export type MemoryScope = "short-term" | "long-term";
+
+// 记忆重要性，用于决定是否需要保留至长期缓存
+// Memory importance, used to determine whether an entry should be promoted to long-term cache
+export type MemoryImportance = "high" | "normal";
+
+// 记忆条目结构，摘要工具调用的关键信息
+// Memory entry structure that captures key information from tool invocations
+export interface MemoryEntry {
+  id: string;
+  toolName: string;
+  summary: string;
+  taskId: string | null;
+  tags: string[];
+  importance: MemoryImportance;
+  createdAt: string;
+  metadata?: Record<string, unknown>;
+}
+
+// 记忆条目输入，用于写入缓存时的基础字段
+// Memory entry input used when writing to the cache
+export interface MemoryEntryInput {
+  toolName: string;
+  summary: string;
+  taskId?: string | null;
+  tags?: string[];
+  importance?: MemoryImportance;
+  metadata?: Record<string, unknown>;
+  createdAt?: string;
+}

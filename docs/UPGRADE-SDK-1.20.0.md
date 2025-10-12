@@ -19,18 +19,18 @@
 ## 结构化输出实现（2025-10-11）
 - 新增 `src/tools/schemas/`，集中维护工具 `structuredContent` Zod schema 与 JSON Schema 导出。
 - 各业务工具在返回值中补充 `structuredContent`，并使用 `validateStructuredContent` 统一校验。
-- 新增 `src/tools/utils/structuredContent.ts` 序列化辅助与对应 Vitest（`structuredContent.test.ts`）。
+- 新增 `src/tools/utils/structuredContent/` 拆分序列化、统计、校验模块，并提供对应用例。
 - 文档 `docs/TOOL-OUTPUT-CONTRACTS.md` 已更新为“已实现”状态。
 
 ## 回归检查
 - `npm run build`：TypeScript 编译通过（2025-10-11 已验证）。
-- `npm test -- --run`：所有 28 项 Vitest 断言通过（含 agentMatcher 套件）。
+- `npm test -- --run`：所有 Vitest 断言通过（含 agentMatcher 套件）。
 - MCP 客户端冒烟：执行 `npm run handshake`，确保握手成功并记录服务器能力（详情见 `docs/HANDSHAKE-VERIFICATION.md`）。
+- `npm run inspect`：通过 `@modelcontextprotocol/inspector` CLI 校验工具列表与 structuredContent 声明。
 
 ## 剩余风险
-- Agent 匹配逻辑仍未满足既定断言，持续影响单测通过率（已登记 RISKS.R5）。
 - 若客户端依赖旧版 `server.tool` 注册结果，需同步更新至 v1.20.0 兼容客户端版本。
 
 ## 后续建议
-- 在完成测试修复后，补充一个示例工具返回 `structuredContent` 的集成测试，保证输出约束长期生效。
+- 增补一个返回 `structuredContent` 的端到端测试样例，保证输出约束长期生效。
 - 根据客户端兼容情况，评估是否提供迁移脚本或 FAQ。

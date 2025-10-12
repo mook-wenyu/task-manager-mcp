@@ -14,9 +14,11 @@ npm run handshake
 ```
 
 默认命令会执行：
-- 通过 `node scripts/verify-handshake.mjs` 启动 `dist/index.js`（禁用 GUI）。
+- 通过 `node scripts/verify-handshake.mjs` 启动 `dist/index.js`（禁用 GUI，保持 stdio 传输）。
 - 使用 `@modelcontextprotocol/sdk` 提供的 `Client` + `StdioClientTransport` 完成初始化流程。
 - 成功时打印服务器名称、版本与能力；失败时输出错误与服务器 stderr。
+
+> 提示：运行 `npm run inspect` 可使用 `mcp-inspector`（CLI 模式）对照能力差异并输出结构化结果。
 
 ## 自定义参数
 ```bash

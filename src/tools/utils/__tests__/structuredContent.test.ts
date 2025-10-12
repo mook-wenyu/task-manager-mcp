@@ -3,6 +3,7 @@ import {
   countTasksByStatus,
   serializeTaskDetail,
   serializeTaskSummaries,
+  validateTask,
 } from "../structuredContent.js";
 import {
   RelatedFileType,
@@ -67,7 +68,7 @@ describe("structuredContent utils", () => {
       {
         id: "task-1",
         name: "待办任务",
-        description: "待处理",
+        description: "待处理任务，验证计数逻辑",
         status: TaskStatus.PENDING,
         dependencies: [],
         createdAt: new Date(),
@@ -76,7 +77,7 @@ describe("structuredContent utils", () => {
       {
         id: "task-2",
         name: "进行中任务",
-        description: "处理中",
+        description: "处理中任务，验证计数逻辑",
         status: TaskStatus.IN_PROGRESS,
         dependencies: [],
         createdAt: new Date(),
@@ -94,5 +95,31 @@ describe("structuredContent utils", () => {
       { id: "task-1", name: "待办任务", status: TaskStatus.PENDING },
       { id: "task-2", name: "进行中任务", status: TaskStatus.IN_PROGRESS },
     ]);
+  });
+
+  it("validates task structure before serialization", () => {
+    const validTask: Task = {
+      id: "task-validate",
+      name: "合法任务",
+      description: "用于验证任务结构的合法示例",
+      status: TaskStatus.COMPLETED,
+      dependencies: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    expect(() => validateTask(validTask)).not.toThrow();
+
+    const missingName: Task = {
+      id: "invalid",
+      name: "",
+      description: "缺失名称的任务用于触发校验错误",
+      status: TaskStatus.PENDING,
+      dependencies: [],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    expect(() => validateTask(missingName)).toThrow("Task 'invalid' is missing required field: name");
   });
 });

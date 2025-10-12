@@ -1,14 +1,14 @@
-[🇺🇸 English](README.md) | [🇨🇳 中文](docs/zh-CN/README.md)
+[English Version](README-en.md)
 
-# MCP Shrimp Task Manager
+# MCP Shrimp 任务管理器
 
-> 🦐 **Intelligent task management for AI-powered development** - Break down complex projects into manageable tasks, maintain context across sessions, and accelerate your development workflow.
+> 🦐 **面向智能体的本地任务管理 MCP 服务器** —— 帮助代理将复杂需求拆解成可执行步骤、保留上下文，并在迭代中保持风格一致与流程闭环。
 
 <div align="center">
   
 [![Shrimp Task Manager Demo](docs/yt.png)](https://www.youtube.com/watch?v=Arzu0lV09so)
 
-**[Watch Demo Video](https://www.youtube.com/watch?v=Arzu0lV09so)** • **[Quick Start](#-quick-start)** • **[Documentation](#-documentation)**
+**[观看演示视频](https://www.youtube.com/watch?v=Arzu0lV09so)** • **[快速上手](#-快速上手)** • **[文档索引](#-文档索引)**
 
 [![smithery badge](https://smithery.ai/badge/@cjo4m06/mcp-shrimp-task-manager)](https://smithery.ai/server/@cjo4m06/mcp-shrimp-task-manager)
 <a href="https://glama.ai/mcp/servers/@cjo4m06/mcp-shrimp-task-manager"><img width="380" height="200" src="https://glama.ai/mcp/servers/@cjo4m06/mcp-shrimp-task-manager/badge" alt="Shrimp Task Manager MCP server" /></a>
@@ -16,64 +16,32 @@
 </div>
 
 ## ⚠️ SDK 升级提示（2025-10-11）
-- 服务器已完成 Model Context Protocol TypeScript SDK **v1.20.0** 迁移，现全面使用 `server.registerTool`/`registerPrompt` 等新接口，旧版 `server.tool` 配置将无法兼容。
-- 所有已注册工具均补充 `structuredContent` 与 `outputSchema`，详细契约请参阅 `docs/TOOL-OUTPUT-CONTRACTS.md`。
-- 新增能力声明默认开启工具与日志支持，若需扩展 prompts/resources，请在 `src/index.ts` 中调用 `server.registerCapabilities`。
-- 当前回归中 `npm run build` 已通过，`npm test -- --run` 现已绿灯，通过 `docs/HANDSHAKE-VERIFICATION.md` 中的 `npm run handshake` 可复核 MCP 初始化。
+- 已完成 Model Context Protocol TypeScript SDK **v1.20.0** 迁移，全面采用 `server.registerTool`/`registerPrompt` 新接口。
+- 全部工具输出均提供 `structuredContent` 与 JSON Schema，对应契约收录于 `docs/TOOL-OUTPUT-CONTRACTS.md`。
+- 默认能力声明含 `tools`、`logging`；如需扩展 prompts/resources，请在 `src/index.ts` 中调用 `server.registerCapabilities`。
+- 回归命令：`npm run build`、`npm test -- --run`、`npm run handshake`、`npm run inspect`。详情见 `docs/HANDSHAKE-VERIFICATION.md`。
 
-## 🚀 Quick Start
+## 🚀 快速上手
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- MCP-compatible AI client (Claude Code, etc.)
+### 环境需求
+- Node.js 18+
+- npm 或其他兼容包管理器
+- 支持 MCP 协议的 AI 客户端（Claude Code、Cline、Claude Desktop 等）
 
-### Installation
-
-#### Installing Claude Code
-
-**Windows 11 (with WSL2):**
-```bash
-# First, ensure WSL2 is installed (in PowerShell as Administrator)
-wsl --install
-
-# Enter Ubuntu/WSL environment
-wsl -d Ubuntu
-
-# Install Claude Code globally
-npm install -g @anthropic-ai/claude-code
-
-# Start Claude Code
-claude
-```
-
-**macOS/Linux:**
-```bash
-# Install Claude Code globally
-npm install -g @anthropic-ai/claude-code
-
-# Start Claude Code
-claude
-```
-
-#### Installing Shrimp Task Manager
+### 安装步骤
 
 ```bash
-# Clone the repository
+# 克隆仓库
 git clone https://github.com/cjo4m06/mcp-shrimp-task-manager.git
 cd mcp-shrimp-task-manager
 
-# Install dependencies
+# 安装依赖
 npm install
 
-# Build the project
-npm run build
+# 构建产物	npm run build
 ```
 
-### Configure Claude Code
-
-Create a `.mcp.json` file in your project directory:
-
+### 客户端配置示例（Claude Code）
 ```json
 {
   "mcpServers": {
@@ -89,174 +57,97 @@ Create a `.mcp.json` file in your project directory:
   }
 }
 ```
+在项目目录执行：`claude --dangerously-skip-permissions --mcp-config .mcp.json`
 
-Example configuration:
-```json
-{
-  "mcpServers": {
-    "shrimp-task-manager": {
-      "command": "node",
-      "args": ["/home/fire/claude/mcp-shrimp-task-manager/dist/index.js"],
-      "env": {
-        "DATA_DIR": "/home/fire/claude/project/shrimp_data",
-        "TEMPLATES_USE": "en",
-        "ENABLE_GUI": "false"
-      }
-    }
-  }
-}
+### 其他客户端
+- **Cline (VS Code 插件)**：在 `settings.json` 中配置 `cline.mcpServers`。
+- **Claude Desktop**：在 `%APPDATA%/Claude/claude_desktop_config.json` 或 `~/Library/Application Support/Claude/claude_desktop_config.json` 中加入配置。
+
+## 💡 核心特性
+- **任务规划**：基于项目上下文自动拆解需求，提供结构化计划与依赖关系。
+- **执行闭环**：提供计划、执行、验收、反思等工具，配合 `.codex` 工作流实现随改随测。
+- **结构化输出**：所有工具返回 `structuredContent`，便于客户端解析与校验。
+- **本地持久化**：任务数据默认存储在 `data/` 目录，可跨会话保留状态。
+- **记忆缓存**：内建 MemoryStore 自动裁剪短期记忆并支持 `memory_replay` 工具回放，便于长程任务复盘。
+- **交互补全**：`plan_task` 缺少约束时通过 elicitation 引导补充输入，规划信息更完整。
+- **可选 GUI**：启用 `ENABLE_GUI=true` 后可访问轻量级 Web 面板或 Task Viewer。
+
+## 🖥️ Web 与可视化
+- **Task Viewer**（React 应用）
+  ```bash
+  cd tools/task-viewer
+  npm install
+  npm run start:all
+  # 浏览器访问 http://localhost:5173
+  ```
+- **轻量 GUI**：在 `.env` 设置 `ENABLE_GUI=true`，运行服务器后自动开启。
+
+## 📚 文档索引
+- [📝 Repository Guidelines](AGENTS.md)
+- [🖐️ Handshake Verification](docs/HANDSHAKE-VERIFICATION.md)
+- [📦 Structured Output Contracts](docs/TOOL-OUTPUT-CONTRACTS.md)
+- [⬆️ SDK v1.20.0 Upgrade Notes](docs/UPGRADE-SDK-1.20.0.md)
+- [🗃️ Archived Research – External MCP Connectors](docs/archive/OFFICIAL-CONNECTOR-EVALUATION.md)
+
+## 🎯 常见使用场景
+<details>
+<summary><b>功能开发</b></summary>
+
 ```
+Plan: "plan task: add user authentication with JWT"
+Execute: "execute task"
+```
+</details>
 
-Then start Claude Code with your custom MCP configuration:
+<details>
+<summary><b>缺陷修复</b></summary>
 
+```
+Plan: "plan task: fix memory leak"
+Continuous: "continuous mode"
+```
+</details>
+
+<details>
+<summary><b>技术调研</b></summary>
+
+```
+Research: "research: compare React vs Vue"
+Plan: "plan task: migrate component"
+```
+</details>
+
+## 🛠️ 环境变量
 ```bash
-claude --dangerously-skip-permissions --mcp-config .mcp.json
-```
-
-<details>
-<summary><b>Other AI Clients</b></summary>
-
-**Cline (VS Code Extension)**: A VS Code extension for AI-assisted coding. Add to VS Code settings.json under `cline.mcpServers`
-
-**Claude Desktop**: Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
-</details>
-
-### Start Using
-
-1. **Initialize your project**: `"init project rules"`
-2. **Plan a task**: `"plan task: implement user authentication"`
-3. **Execute tasks**: `"execute task"` or `"continuous mode"`
-
-## 💡 What is Shrimp?
-
-Shrimp Task Manager is an MCP (Model Context Protocol) server that transforms how AI agents approach software development. Instead of losing context or repeating work, Shrimp provides:
-
-- **🧠 Persistent Memory**: Tasks and progress persist across sessions
-- **📋 Structured Workflows**: Guided processes for planning, execution, and verification
-- **🔄 Smart Decomposition**: Automatically breaks complex tasks into manageable subtasks
-- **🎯 Context Preservation**: Never lose your place, even with token limits
-
-## ✨ Core Features
-
-### Task Management
-- **Intelligent Planning**: Deep analysis of requirements before implementation
-- **Task Decomposition**: Break down large projects into atomic, testable units
-- **Dependency Tracking**: Automatic management of task relationships
-- **Progress Monitoring**: Real-time status tracking and updates
-
-### Advanced Capabilities
-- **🔬 Research Mode**: Systematic exploration of technologies and solutions
-- **🤖 Agent System**: Assign specialized AI agents to specific tasks ([Learn more](docs/agents.md))
-- **📏 Project Rules**: Define and maintain coding standards across your project
-- **💾 Task Memory**: Automatic backup and restoration of task history
-
-### Web Interfaces
-
-#### 🖥️ Task Viewer
-Modern React interface for visual task management with drag-and-drop, real-time search, and multi-profile support.
-
-**Quick Setup:**
-```bash
-cd tools/task-viewer
-npm install
-npm run start:all
-# Access at http://localhost:5173
-```
-
-[📖 Full Task Viewer Documentation](tools/task-viewer/README.md)
-
-<kbd><img src="tools/task-viewer/task-viewer-interface.png" alt="Task Viewer Interface" width="600"/></kbd>
-
-#### 🌐 Web GUI
-Optional lightweight web interface for quick task overview.
-
-Enable in `.env`: `ENABLE_GUI=true`
-
-## 📚 Documentation
-
-- [📖 Full Documentation](docs/README.md)
-- [🛠️ Available Tools](docs/tools.md)
-- [🤖 Agent Management](docs/agents.md)
-- [🎨 Prompt Customization](docs/en/prompt-customization.md)
-- [🔧 API Reference](docs/api.md)
-
-## 🎯 Common Use Cases
-
-<details>
-<summary><b>Feature Development</b></summary>
-
-```
-Agent: "plan task: add user authentication with JWT"
-# Agent analyzes codebase, creates subtasks
-
-Agent: "execute task"
-# Implements authentication step by step
-```
-</details>
-
-<details>
-<summary><b>Bug Fixing</b></summary>
-
-```
-Agent: "plan task: fix memory leak in data processing"
-# Agent researches issue, creates fix plan
-
-Agent: "continuous mode"
-# Executes all fix tasks automatically
-```
-</details>
-
-<details>
-<summary><b>Research & Learning</b></summary>
-
-```
-Agent: "research: compare React vs Vue for this project"
-# Systematic analysis with pros/cons
-
-Agent: "plan task: migrate component to chosen framework"
-# Creates migration plan based on research
-```
-</details>
-
-## 🛠️ Configuration
-
-### Environment Variables
-
-Create a `.env` file:
-
-```bash
-# Required
+# 必填
 DATA_DIR=/path/to/data/storage
 
-# Optional
-ENABLE_GUI=true          # Enable web GUI
-WEB_PORT=3000           # Custom web port
-PROMPT_LANGUAGE=en      # Prompt language (en, zh, etc.)
+# 可选
+ENABLE_GUI=false        # 是否开启 Web GUI
+WEB_PORT=3000           # GUI 服务端口
+PROMPT_LANGUAGE=en      # 模板语言（en、zh 等）
 ```
 
-### Available Commands
+## 📋 常用命令
+| 命令 | 说明 |
+|------|------|
+| `npm run build` | TypeScript 编译与资源复制 |
+| `npm run dev` | 以 ts-node 启动开发模式 |
+| `npm test -- --run` | 运行所有 Vitest 测试 |
+| `npm run handshake` | 验证握手流程（Stdio 客户端） |
+| `npm run inspect` | 使用 MCP Inspector CLI 检查能力声明 |
 
-| Command | Description |
-|---------|-------------|
-| `init project rules` | Initialize project standards |
-| `plan task [description]` | Create a task plan |
-| `execute task [id]` | Execute specific task |
-| `continuous mode` | Execute all tasks sequentially |
-| `list tasks` | Show all tasks |
-| `research [topic]` | Enter research mode |
-| `reflect task [id]` | Review and improve task |
+## 🤝 贡献
 
-## 🤝 Contributing
+欢迎通过 Issue、PR 或讨论区参与建设。提交前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 并确保 `.codex` 与文档同步。
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+## 📄 许可证
 
-## 📄 License
+项目基于 [MIT License](LICENSE)。
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🌟 致谢
 
-## 🌟 Credits
-
-Created by [cjo4m06](https://github.com/cjo4m06) and maintained by the community.
+由 [cjo4m06](https://github.com/cjo4m06) 创建并由社区共同维护。
 
 ---
 

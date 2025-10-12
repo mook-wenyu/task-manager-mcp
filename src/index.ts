@@ -3,6 +3,7 @@ import { loadPromptFromTemplate } from "./prompts/loader.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { InitializedNotificationSchema, type CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { performance } from "node:perf_hooks";
 import type { ZodRawShape } from "zod";
 import { setGlobalServer } from "./utils/paths.js";
 import { createWebServer } from "./web/webServer.js";
@@ -11,6 +12,9 @@ import {
   validateStructuredContent,
   type ToolStructuredContentName,
 } from "./tools/schemas/index.js";
+import { logToolInvocation } from "./utils/structuredLogger.js";
+import { recordMemoryFromTool } from "./utils/memoryRecorder.js";
+import { validateProtocolVersion } from "./utils/protocolGuards.js";
 
 import {
   planTask,
@@ -42,6 +46,8 @@ import {
   initProjectRules,
   researchMode,
   researchModeSchema,
+  memoryReplay,
+  memoryReplaySchema,
 } from "./tools/index.js";
 
 type ToolInvocation = CallToolResult | Promise<CallToolResult>;
@@ -142,6 +148,12 @@ const TOOL_DEFINITIONS: ToolDefinition[] = [
     invoke: (args) => processThought(args as unknown as Parameters<typeof processThought>[0]),
   },
   {
+    name: "memory_replay",
+    template: "toolsDescription/memoryReplay.md",
+    schema: memoryReplaySchema.shape,
+    invoke: (args) => memoryReplay(args as unknown as Parameters<typeof memoryReplay>[0]),
+  },
+  {
     name: "init_project_rules",
     template: "toolsDescription/initProjectRules.md",
     invoke: () => initProjectRules(),
@@ -190,6 +202,59 @@ async function resolveToolResult(
   return result;
 }
 
+function extractErrorCode(error: unknown): string | undefined {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    if (typeof code === "string" || typeof code === "number") {
+      return String(code);
+    }
+  }
+  return undefined;
+}
+
+type RequestContext = {
+  requestInfo?: {
+    headers?: Record<string, string | string[] | undefined>;
+  };
+};
+
+async function invokeWithLogging(
+  name: string,
+  invocation: ToolInvocation,
+  extra?: RequestContext
+): Promise<CallToolResult> {
+  validateProtocolVersion(extra?.requestInfo?.headers);
+
+  const startedAt = performance.now();
+  try {
+    const result = await resolveToolResult(name, invocation);
+    logToolInvocation({
+      toolName: name,
+      status: "success",
+      durationMs: Math.round(performance.now() - startedAt),
+      hasStructuredContent: Boolean(result.structuredContent),
+    });
+    try {
+      await recordMemoryFromTool(name, result);
+    } catch (memoryError) {
+      console.warn(
+        `[${name}] 记录记忆时失败:`,
+        memoryError instanceof Error ? memoryError.message : memoryError
+      );
+    }
+    return result;
+  } catch (error) {
+    logToolInvocation({
+      toolName: name,
+      status: "error",
+      durationMs: Math.round(performance.now() - startedAt),
+      errorMessage: error instanceof Error ? error.message : String(error),
+      errorCode: extractErrorCode(error),
+    });
+    throw error;
+  }
+}
+
 async function registerTools(server: McpServer): Promise<void> {
   for (const tool of TOOL_DEFINITIONS) {
     const description = await loadPromptFromTemplate(tool.template);
@@ -211,8 +276,8 @@ async function registerTools(server: McpServer): Promise<void> {
           ...(outputShape ? { outputSchema: outputShape } : {}),
         },
         async (args, extra) => {
-          void extra;
-          return await resolveToolResult(tool.name, tool.invoke(args));
+          const invocation = tool.invoke(args);
+          return await invokeWithLogging(tool.name, invocation, extra as RequestContext);
         }
       );
     } else {
@@ -222,9 +287,9 @@ async function registerTools(server: McpServer): Promise<void> {
           ...baseConfig,
           ...(outputShape ? { outputSchema: outputShape } : {}),
         },
-        async (extra) => {
-          void extra;
-          return await resolveToolResult(tool.name, tool.invoke());
+        async (_args, extra) => {
+          const invocation = tool.invoke();
+          return await invokeWithLogging(tool.name, invocation, extra as RequestContext);
         }
       );
     }

@@ -1,0 +1,1 @@
+Use this tool to replay recent planning, reasoning, and execution notes from the local memory cache. You can filter by task ID, tags, and scope to keep long-running workstreams aligned without losing context.

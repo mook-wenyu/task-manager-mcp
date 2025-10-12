@@ -4,7 +4,7 @@ import { fileURLToPath } from "url";
 import { getAllTasks } from "../../models/taskModel.js";
 import { TaskStatus, Task } from "../../types/index.js";
 import { getPlanTaskPrompt } from "../../prompts/index.js";
-import { getMemoryDir } from "../../utils/paths.js";
+import { getGlobalServer, getMemoryDir } from "../../utils/paths.js";
 
 // 开始规划工具
 // Start planning tool
@@ -42,6 +42,44 @@ export async function planTask({
   const PROJECT_ROOT = path.resolve(__dirname, "../../..");
   const MEMORY_DIR = await getMemoryDir();
 
+  const server = getGlobalServer();
+  let finalRequirements = requirements;
+
+  if (!finalRequirements && server?.elicitInput) {
+    try {
+      const elicitation = await server.elicitInput({
+        message:
+          "是否要补充本次规划的技术/业务约束（可留空跳过）？",
+        requestedSchema: {
+          type: "object",
+          properties: {
+            requirements: {
+              type: "string",
+              title: "额外约束",
+              description:
+                "例如性能目标、接口依赖、上线窗口等（可选）",
+            },
+          },
+        },
+      });
+
+      if (
+        elicitation.action === "accept" &&
+        typeof elicitation.content?.requirements === "string"
+      ) {
+        const trimmed = elicitation.content.requirements.trim();
+        if (trimmed.length > 0) {
+          finalRequirements = trimmed;
+        }
+      }
+    } catch (error) {
+      console.warn(
+        "planTask elicitation failed",
+        error instanceof Error ? error.message : error
+      );
+    }
+  }
+
   // 准备所需参数
   // Prepare required parameters
   let completedTasks: Task[] = [];
@@ -68,7 +106,7 @@ export async function planTask({
   // Use prompt generator to get the final prompt
   const prompt = await getPlanTaskPrompt({
     description,
-    requirements,
+    requirements: finalRequirements,
     existingTasksReference,
     completedTasks,
     pendingTasks,
@@ -80,6 +118,9 @@ export async function planTask({
     payload: {
       markdown: prompt,
       prompt,
+      ...(finalRequirements
+        ? { requirements: finalRequirements }
+        : {}),
       ...(existingTasksReference
         ? {
             existingTaskStats: {

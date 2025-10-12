@@ -76,6 +76,7 @@ export const PlanTaskStructuredSchema = z.object({
   kind: z.literal("taskManager.plan"),
   payload: MarkdownPayloadSchema.extend({
     prompt: z.string(),
+    requirements: z.string().optional(),
     existingTaskStats: z
       .object({
         total: z.number().int().nonnegative(),
@@ -222,6 +223,13 @@ export const InitProjectRulesStructuredSchema = z.object({
   }),
 });
 
+const ResourceLinkSchema = z.object({
+  uri: z.string(),
+  name: z.string(),
+  mimeType: z.string().optional(),
+  description: z.string().optional(),
+});
+
 export const ResearchModeStructuredSchema = z.object({
   kind: z.literal("taskManager.research"),
   payload: MarkdownPayloadSchema.extend({
@@ -230,6 +238,33 @@ export const ResearchModeStructuredSchema = z.object({
     currentState: z.string(),
     nextSteps: z.string(),
     memoryDir: z.string().optional(),
+    resourceLinks: z.array(ResourceLinkSchema).optional(),
+  }),
+});
+
+const MemoryReplayEntrySchema = z.object({
+  id: z.string(),
+  toolName: z.string(),
+  summary: z.string(),
+  taskId: z.string().nullable(),
+  tags: z.array(z.string()),
+  importance: z.literal("high").or(z.literal("normal")),
+  createdAt: z.string(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+export const MemoryReplayStructuredSchema = z.object({
+  kind: z.literal("taskManager.memoryReplay"),
+  payload: MarkdownPayloadSchema.extend({
+    scope: z.union([z.literal("short-term"), z.literal("long-term")]),
+    limit: z.number().int().min(1),
+    entries: z.array(MemoryReplayEntrySchema),
+    filters: z
+      .object({
+        taskId: z.string().nullable().optional(),
+        tags: z.array(z.string()).optional(),
+      })
+      .optional(),
   }),
 });
 export const TOOL_STRUCTURED_SCHEMAS = {
@@ -248,6 +283,7 @@ export const TOOL_STRUCTURED_SCHEMAS = {
   process_thought: ProcessThoughtStructuredSchema,
   init_project_rules: InitProjectRulesStructuredSchema,
   research_mode: ResearchModeStructuredSchema,
+  memory_replay: MemoryReplayStructuredSchema,
 } as const;
 
 type SchemaMap = typeof TOOL_STRUCTURED_SCHEMAS;
