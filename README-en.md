@@ -13,20 +13,28 @@
 
 </div>
 
-## ⚠️ SDK Upgrade Notice (2025-10-11)
-- Migrated to Model Context Protocol TypeScript SDK **v1.20.0** using the new `server.registerTool` / `registerPrompt` APIs.
-- All tools now expose `structuredContent`; the canonical schemas live in `src/tools/schemas/outputSchemas.ts`.
-- Default capability declaration enables `tools` and `logging`; extend prompts/resources via `server.registerCapabilities` when needed.
-- Regression suite: `npm run build`, `npm test -- --run`.
+## 📦 Release Update (2025-10-13)
+- npm package `@mook_wy/mook-task-manager` is live; launch instantly with `npx -y @mook_wy/mook-task-manager@latest`.
+- npx fits Claude Code, Codex CLI, and other clients without manual install or updates.
+- Use the local build workflow below only when you need offline access or custom modifications.
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Instant Run (npx)
+```bash
+npx -y @mook_wy/mook-task-manager@latest
+```
+- Downloads on first launch, then reuses npm cache.
+- Configure Claude Code, Codex CLI, etc. by setting `command` to `npx` with the above arguments.
+
+### Local Development
+
+#### Prerequisites
 - Node.js 18+
 - npm (or compatible package manager)
 - MCP-enabled AI client (Claude Code, Cline, Claude Desktop, ...)
 
-### Installation
+#### Steps
 ```bash
 git clone https://github.com/mook-wenyu/task-manager-mcp.git
 cd task-manager-mcp
@@ -39,17 +47,31 @@ npm run build
 {
   "mcpServers": {
     "mook-task-manager": {
-      "command": "node",
-      "args": ["/path/to/task-manager-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@mook_wy/mook-task-manager@latest"],
       "env": {
-        "DATA_DIR": "/path/to/your/data_dir",
+        "DATA_DIR": "/path/to/your_data_dir",
         "TEMPLATES_USE": "zh"
       }
     }
   }
 }
 ```
+Switch to the local build by setting `command` to `node` and pointing `args` to `dist/index.js` when needed.
+
 Launch with `claude --dangerously-skip-permissions --mcp-config .mcp.json`.
+
+### Configure Codex CLI
+```toml
+[mcp_servers.mook-task-manager]
+command = "npx"
+args = ["-y", "@mook_wy/mook-task-manager@latest"]
+
+[mcp_servers.mook-task-manager.env]
+DATA_DIR = "/path/to/your_data_dir"
+TEMPLATES_USE = "zh"
+```
+Fallback to the local build by switching `command` to `node` and targeting `path/to/task-manager-mcp/dist/index.js`.
 
 ### Other Clients
 - **Cline (VS Code Extension)**: configure `cline.mcpServers` in `settings.json`.
@@ -66,7 +88,7 @@ Launch with `claude --dangerously-skip-permissions --mcp-config .mcp.json`.
 ## 📚 References
 - [📝 Repository Guidelines](AGENTS.md)
 - Structured output contracts: see `src/tools/schemas/outputSchemas.ts`
-- SDK v1.20.0 upgrade highlights: documented in this README and commit history
+- Release updates: see “📦 Release Update” above and CHANGELOG
 - External MCP connector research: summarized in `PLAN.md` and `RISKS.md`
 
 ## 🎯 Typical Scenarios

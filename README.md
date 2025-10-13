@@ -13,20 +13,28 @@
 
 </div>
 
-## ⚠️ SDK 升级提示（2025-10-11）
-- 已完成 Model Context Protocol TypeScript SDK **v1.20.0** 迁移，全面采用 `server.registerTool`/`registerPrompt` 新接口。
-- 全部工具输出均提供 `structuredContent` 与 JSON Schema，对应契约定义集中在 `src/tools/schemas/outputSchemas.ts`。
-- 默认能力声明含 `tools`、`logging`；如需扩展 prompts/resources，请在 `src/index.ts` 中调用 `server.registerCapabilities`。
-- 回归命令：`npm run build`、`npm test -- --run`。
+## 📦 发布动态（2025-10-13）
+- npm 包 `@mook_wy/mook-task-manager` 已上线，默认通过 `npx -y @mook_wy/mook-task-manager@latest` 即时启动 MCP 服务器。
+- npx 启动适合 Claude Code、Codex CLI 等客户端，避免手动安装或更新。
+- 若需离线或自定义改动，可切换至下方“本地开发”流程构建并引用 `dist/index.js`。
 
 ## 🚀 快速上手
 
-### 环境需求
+### 快速体验（npx）
+```bash
+npx -y @mook_wy/mook-task-manager@latest
+```
+- 首次运行会自动下载依赖，后续走 npm 缓存。
+- 在 Claude Code、Codex CLI 等客户端中，将 `command` 设置为 `npx` 并使用上方参数即可连接。
+
+### 本地开发
+
+#### 环境需求
 - Node.js 18+
 - npm 或其他兼容包管理器
 - 支持 MCP 协议的 AI 客户端（Claude Code、Cline、Claude Desktop 等）
 
-### 安装步骤
+#### 步骤
 
 ```bash
 # 克隆仓库
@@ -44,8 +52,8 @@ npm install
 {
   "mcpServers": {
     "mook-task-manager": {
-      "command": "node",
-      "args": ["/path/to/task-manager-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@mook_wy/mook-task-manager@latest"],
       "env": {
         "DATA_DIR": "/path/to/your/data_dir",
         "TEMPLATES_USE": "zh"
@@ -54,19 +62,23 @@ npm install
   }
 }
 ```
+若需引用本地构建产物，将 `command` 改为 `node`，`args` 指向 `dist/index.js`。
+
 在项目目录执行：`claude --dangerously-skip-permissions --mcp-config .mcp.json`
 
 ### 客户端配置示例（Codex CLI）
 ```toml
 [mcp_servers.mook-task-manager]
-command = "node"
-args = ["/path/to/task-manager-mcp/dist/index.js"]
+command = "npx"
+args = ["-y", "@mook_wy/mook-task-manager@latest"]
 
 [mcp_servers.mook-task-manager.env]
-DATA_DIR = "/path/to/your/data_dir"
+DATA_DIR = "/path/to/your_data_dir"
 TEMPLATES_USE = "zh"
 ```
-将上述片段写入 `~/.codex/config.toml`（或自定义 `--config` 路径），并在首次使用前运行 `npm run build` 生成 `dist/index.js`。请将示例路径替换为本地绝对路径，Codex CLI 会通过 stdio 启动该 MCP 服务器并加载环境变量，详见 [Codex MCP 配置文档](https://developers.openai.com/docs/agents/reference/codex#mcp-server-configuration)。
+如需使用本地源码构建，将 `command` 改为 `node` 并将 `args` 指向 `path/to/task-manager-mcp/dist/index.js` 后重载配置。
+
+将上述片段写入 `~/.codex/config.toml`（或自定义 `--config` 路径），详见 [Codex MCP 配置文档](https://developers.openai.com/docs/agents/reference/codex#mcp-server-configuration)。
 
 ### 其他客户端
 - **Cline (VS Code 插件)**：在 `settings.json` 中配置 `cline.mcpServers`。
@@ -83,7 +95,7 @@ TEMPLATES_USE = "zh"
 ## 📚 参考指引
 - [📝 Repository Guidelines](AGENTS.md)
 - 结构化输出契约：详见源码 `src/tools/schemas/outputSchemas.ts`
-- SDK v1.20.0 升级说明：参阅 `README.md` 本节与提交历史
+- 版本动态：参阅上方“📦 发布动态”章节与 CHANGELOG
 - 外部 MCP 连接器调研：可参考 `PLAN.md` 与 `RISKS.md` 中的摘要
 
 ## 🎯 常见使用场景

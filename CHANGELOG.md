@@ -12,6 +12,12 @@
 
 - Updated documentation（README、PLAN、RISKS、TASKS、AGENTS）以说明 GUI/Task Viewer 已停用，并收敛配置示例至 DATA_DIR/TEMPLATES_USE。
 
+## [1.1.1] - 2025-10-13
+
+### Changed
+
+- Documentation: removed outdated SDK upgrade notice, documented npm publication with npx-first usage, and kept local build guidance as fallback.
+
 ## [1.0.21] - 2025-01-13
 
 ### Added
