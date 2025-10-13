@@ -1,3 +1,5 @@
+> 说明：以下记录包含上下文引擎相关验证，2025-10-13 后的持续维护已迁移至独立项目 `D:\TSProjects\context-engine`，本仓内容保留为历史参考。
+
 ## 2025-10-08 繁体转简体验证
 - 历史记录：曾使用 `py scripts/traditional_scan.py --root . --output reports/traditional_scan.md` 确认 `files_with_traditional=0`，该脚本现已移除，如需复验需另行执行扫描。
 - 抽检转换文件：`src/public/style.css`、`system.md`、`tools/task-viewer` 相关组件均为简体。
@@ -20,7 +22,7 @@
 - 相关输出均已登记 `.codex/testing.md`，脚本化流程已在 2025-10-12 移除，未来需按需手动复核。
 
 ## 2025-10-12 日志策略精简复盘
-- 工具执行时仅在错误场景写入精简 stderr 文本 `"[tool] error | 123ms | message"`，成功路径不再输出 JSON。
+- 工具执行时仅在错误场景写入精简 stderr 文本 "[tool] error | 123ms | message"，成功路径不再输出 JSON。
 - `src/utils/structuredLogger.ts` 保留统一入口，兼容后续扩展开关；如需详细追踪可在外部脚本包裹重建结构化日志。
 - 评估结果：降低 stdout/stderr 噪音，满足极简 MCP 定位。若未来需要集中监控，可在部署层添加可选日志适配器。
 

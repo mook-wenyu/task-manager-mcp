@@ -2,32 +2,40 @@
 
 ## 阶段概览
 - **阶段A（已完成｜2025-10-11）**：完成 SDK v1.20.0 升级、structuredContent 拆分、日志/记忆策略固化，形成本地 stdio-only 运行基线。
-- **阶段B（进行中｜2025-10-12）**：恢复被删除的文档与脚本，重新对齐 Task Manager 与文档体系，确保 GA 任务具备可执行依据。
-- **阶段C（待规划）**：聚焦命令行工作流稳健性、日志/验证体系与长程记忆治理，摒弃 GUI/Task Viewer 相关交付，收敛为极简 MCP 形态。
+- **阶段B（已完成｜2025-10-13）**：恢复被删除的文档与脚本，重新对齐流程文档与风险台账，构建 GA 所需资料库。
+- **阶段C（历史归档｜2025-10-13）**：极简上下文引擎稳健化（token 阈值压缩 + `SafeFileWriter` 原子写入）；成果已迁出至独立项目 `D:\TSProjects\context-engine`。
 
-## 阶段B：仓库基线恢复
-1. **文档/脚本恢复（完成）**：从 `origin/main` 还原 `docs/*`、`reports/traditional_scan.md`、`scripts/*.mjs|.ts|.py`，确保结构化契约、协议升级、握手验证、记忆管理等资料齐备。
-2. **任务体系对齐（进行中）**：
-   - 审核 Task Manager 中的 2025-10-12-94~97 任务链，补充描述、验收标准与依赖文档链接。
-   - 更新 `PLAN.md`/`TASKS.md`/`RISKS.md`/`METRICS.md` 使其与 Task Manager 一致，并反映文档恢复结果。
-   - 清点脚本与文档新旧差异，记录需重写或补充的章节。
-3. **迭代拆分（待执行）**：输出 Stage C 的首批可执行迭代（例如 GUI 端 Plan 编辑验收脚本、事件总线 Schema 校验等）。
+## 当前状态
+- 2025-10-13 完成上下文引擎稳健化后，相关源码与文档已迁移至独立项目 `D:\TSProjects\context-engine`，本仓库仅保留任务管理核心功能。
+- 任务看板 T31~T33 均已交付，后续如需新目标将另行规划，当前保持看板空闲。
+- `RISKS.md`、`verification.md` 等检查点对上下文引擎的记录保留作历史参考，后续变更改在新项目中维护；本仓库指标暂不新增。
 
-## 阶段C：GA 交付准备（待启动）
-- **核心工作流稳健性**：持续完善计划/执行/验证闭环的提示词与错误处理，确保存储与日志策略可追溯。
-- **事件总线治理 GA（Task 2025-10-12-95）**：补齐 Schema/背压/告警文档与压测脚本，刷新 Prometheus 指标与 Runbook。
-- **Golden Path 门户（Task 2025-10-12-96）**：基于调研结论产出门户结构、文档入口与采用度指标。
-- **MVP 闭环 + Day-2 运维（Task 2025-10-12-97）**：整理验收包、回滚 Runbook、OPS 指标及测试记录。
+## 历史里程碑
+1. **基础升级与流程固化（阶段A）**  
+   - 对齐 TypeScript SDK v1.20.0。  
+   - 引入 structuredContent 体系、握手脚本与日志策略。  
+   - 完成第一次全量构建与测试闭环。
+2. **仓库恢复与对齐（阶段B）**  
+   - 恢复文档、脚本与 GA 验证资料。  
+   - 统一 DATA_DIR、日志策略与检查点文件，确保治理文件完备。  
+   - 完成多轮构建/测试回归并记录于 `.codex/testing.md`。
+3. **极简上下文引擎 MVP（阶段C 历史交付）**  
+   - 落地 collector、summarizer、context/rollback MCP 工具及单测（现已迁出本仓）。  
+   - 输出 `context-engine/README.md` 架构说明与日志治理草案，并在新项目中持续维护。  
+   - 更新风险与指标记录，形成回滚与压缩策略草稿。
 
-## 检查点文件
-- `TASKS.md`：维护阶段B/B后的任务状态（新增 T12~T15 以映射 Task Manager 任务链）。
-- `RISKS.md`：跟踪“基线缺失”“GA 验收脚本漂移”等新风险，并更新缓解策略。
-- `METRICS.md`：记录 lint/build/test 结果、GA 准备指标（GUI 覆盖率、事件总线延迟、Golden Path 采用率、运维演练频次）。
-- `docs/`、`scripts/`：恢复后的文档与脚本需与最新流程一致，修改后同步到上述检查点文件。
-- `.codex/operations-log.md`：持续登记恢复与迭代拆分动作。
+## 待决事项
+- ~~T31：实现 token 阈值压缩触发器（collector 与 injector 共用），并在 `SummaryBundle` 中标注 `totalTokens` 与 `compressedAt`。~~（已完成｜2025-10-13）  
+- ~~T32：封装 `SafeFileWriter` 并替换 collector state、audit 日志、会话重写的写入逻辑。~~（已完成｜2025-10-13）  
+- ~~T33：完成回滚演练与文档更新，确保压缩前后可恢复。~~（已完成｜2025-10-13）
 
-## 下一步
-1. 更新 `TASKS.md` 与 Task Manager，使阶段B/B后的任务条目一致（新增/标记 T12~T15），并移除 GUI/Task Viewer 相关迭代。
-2. 在 `RISKS.md` 新增“文档恢复后仍存在信息缺口”的风险，并拟定补救措施。
-3. 补写 `METRICS.md` 与 `verification.md` 中关于文档恢复与 lint/build/test 成功的记录。
-4. 拆解 Stage C 首个迭代（聚焦日志、记忆与 CLI 流程），并在 Task Manager 中创建对应子任务。
+## 检查点文件维护约定
+- `TASKS.md`：保留 T31~T33 的历史记录；后续上下文引擎事项改在新项目中跟踪。  
+- `RISKS.md`：阶段C 相关条目保留为归档；本仓新风险按需新增。  
+- `METRICS.md`：维持历史记录，若未来需要统计压缩成功率将转交新项目。  
+- `.codex/operations-log.md`：继续记录本仓任务管理相关的规划、实现与验证动作。
+
+## 下一步建议
+1. 汇总阶段C 交付成果与测试记录，为后续阶段制定新目标或优化项提供输入。  
+2. 若未来需要更高级的记忆策略（主题聚合等），在现有稳健基线基础上另起阶段评审。  
+3. 持续同步 `verification.md`、`.codex/testing.md` 与 `RISKS.md`，确保文档与执行闭环保持最新。
