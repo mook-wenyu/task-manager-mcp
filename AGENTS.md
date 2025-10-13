@@ -40,3 +40,13 @@
 ## 配置与安全提示
 - 通过 `.env` 控制 `DATA_DIR`、`TEMPLATES_USE` 等参数，示例见 `.env.example`，生产环境避免提交敏感值。
 - 升级 MCP SDK 时请先对照 `src/tools/schemas/outputSchemas.ts` 与本文件的契约说明，确认结构化输出契约已满足再发布。
+
+## split_tasks 操作守则
+- 传入 `split_tasks` 的 `tasksRaw` 必须解析为至少一个任务对象，禁止空数组或空白字符串，避免触发 `E_VALIDATE`。
+- 当返回 `E_VALIDATE` 时视为调用方输入有误：记录错误、提示纠正，再按提示补齐任务数据后重试，禁止跳过校验。
+- 健康检查脚本需包含一次空数组断言，验证错误信息能正确返回并引导用户修正。
+
+## 阶段与调研工作流
+- 阶段进度文件存放于 `<DATA_DIR>/.shrimp/status/<taskId>/stages.json`，`execute_task` 会自动标记实施阶段，`verify_task` 依据评分写入验收结果，`list_tasks` 输出阶段汇总视图。
+- `plan_task` 结构化输出包含 `openQuestions`，可配合 `queue_research_task` 将问题写入 `<DATA_DIR>/.shrimp/specs/<taskId>/open-questions.json` 与 `research.md`，并为每条问题生成调研子任务。
+- 示例流程可参考 `<DATA_DIR>/.shrimp/examples/` 下的脚本，涵盖规格生成 → 工作流模板 → 阶段进度 → 调研排队的最小路径。

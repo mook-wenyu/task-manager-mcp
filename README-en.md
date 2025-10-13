@@ -13,12 +13,6 @@
 
 </div>
 
-## ⚠️ SDK Upgrade Notice (2025-10-11)
-- Migrated to Model Context Protocol TypeScript SDK **v1.20.0** using the new `server.registerTool` / `registerPrompt` APIs.
-- All tools now expose `structuredContent`; the canonical schemas live in `src/tools/schemas/outputSchemas.ts`.
-- Default capability declaration enables `tools` and `logging`; extend prompts/resources via `server.registerCapabilities` when needed.
-- Regression suite: `npm run build`, `npm test -- --run`.
-
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -63,11 +57,29 @@ Launch with `claude --dangerously-skip-permissions --mcp-config .mcp.json`.
 - **Memory cache** – the built-in MemoryStore trims short-term context and exposes the `memory_replay` tool for quick retrospectives.
 - **Interactive elicitation** – `plan_task` can prompt for missing constraints via `elicitInput`, keeping plans grounded.
 - **Minimal interaction surface** – internal GUI/Task Viewer have been retired; the workflow focuses on MCP tooling and CLI automation.
+- **Stage progress view** – `execute_task` / `verify_task` maintain `.shrimp/status/<taskId>/stages.json`, and `list_tasks` summarizes Spec→Plan→Implementation→Verification states at a glance.
+- **Research hooks** – `plan_task` emits `openQuestions`; `queue_research_task` writes research.md/open-questions.json and spins up follow-up research tasks for each pending clarification.
+
+## 🧭 Compatibility & Scope
+
+### MCP Spec Version
+- We align with the Model Context Protocol public specification dated 2025-06-18 and mirror the latest fields in `src/tools/schemas/outputSchemas.ts`.
+- When upstream standards evolve, validate changes on a feature branch before updating schemas and documentation; capture breaking notes or regression steps in `.codex/testing.md` if needed.
+
+### Lightweight Capability Choices
+- The server intentionally keeps to the Spec→Coding→Research toolchain (`plan_task`, `generate_spec_template`, `register_connection`, `generate_workflow`, `render_role_prompt`, `queue_research_task`) while leaving GUI, SSE streaming, and heavy monitoring out of scope to preserve minimal footprint.
+- All outputs live under `<DATA_DIR>/.shrimp/`, combining stage progress, role prompts, and research hooks to cover the essentials without duplicating features already handled by external platforms.
+
+### Modular Connection Strategy
+- Use `register_connection` (`src/tools/config/registerConnection.ts`) to catalog external MCP providers or Spec Kit services so that aliases flow into `plan_task`, `list_tasks`, and `execute_task` responses.
+- Store only the command, arguments, and scope required for each connection; experiment safely via `.shrimp/config/servers.json` before committing integrations into shared environments.
+
 ## 📚 References
 - [📝 Repository Guidelines](AGENTS.md)
 - Structured output contracts: see `src/tools/schemas/outputSchemas.ts`
 - SDK v1.20.0 upgrade highlights: documented in this README and commit history
 - External MCP connector research: summarized in `PLAN.md` and `RISKS.md`
+- End-to-end examples: available under `<DATA_DIR>/.shrimp/examples/`
 
 ## 🎯 Typical Scenarios
 <details>
@@ -94,6 +106,15 @@ Continuous: "continuous mode"
 ```
 Research: "research: compare React vs Vue"
 Plan: "plan task: migrate component"
+```
+</details>
+
+<details>
+<summary><b>Clarification & Research</b></summary>
+
+```
+Plan: "plan task: audit external dependencies"
+Queue research: "queue research task {\"taskId\": \"<TASK_ID>\", \"questions\": [{\"question\": \"Does the upstream API expose error codes?\", \"required\": true}]}"
 ```
 </details>
 

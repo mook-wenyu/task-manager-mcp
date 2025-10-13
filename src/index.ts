@@ -47,6 +47,16 @@ import {
   researchModeSchema,
   memoryReplay,
   memoryReplaySchema,
+  generateSpecTemplate,
+  generateSpecTemplateSchema,
+  registerConnection,
+  registerConnectionSchema,
+  generateWorkflow,
+  generateWorkflowSchema,
+  renderRolePrompt,
+  renderRolePromptSchema,
+  queueResearchTask,
+  queueResearchTaskSchema,
 } from "./tools/index.js";
 
 type ToolInvocation = CallToolResult | Promise<CallToolResult>;
@@ -153,6 +163,42 @@ const TOOL_DEFINITIONS: ToolDefinition[] = [
     invoke: (args) => memoryReplay(args as unknown as Parameters<typeof memoryReplay>[0]),
   },
   {
+    name: "generate_spec_template",
+    template: "toolsDescription/generateSpecTemplate.md",
+    schema: generateSpecTemplateSchema.shape,
+    invoke: (args) =>
+      generateSpecTemplate(
+        args as unknown as Parameters<typeof generateSpecTemplate>[0]
+      ),
+  },
+  {
+    name: "generate_workflow",
+    template: "toolsDescription/generateWorkflow.md",
+    schema: generateWorkflowSchema.shape,
+    invoke: (args) =>
+      generateWorkflow(
+        args as unknown as Parameters<typeof generateWorkflow>[0]
+      ),
+  },
+  {
+    name: "render_role_prompt",
+    template: "toolsDescription/renderRolePrompt.md",
+    schema: renderRolePromptSchema.shape,
+    invoke: (args) =>
+      renderRolePrompt(
+        args as unknown as Parameters<typeof renderRolePrompt>[0]
+      ),
+  },
+  {
+    name: "register_connection",
+    template: "toolsDescription/registerConnection.md",
+    schema: registerConnectionSchema.shape,
+    invoke: (args) =>
+      registerConnection(
+        args as unknown as Parameters<typeof registerConnection>[0]
+      ),
+  },
+  {
     name: "init_project_rules",
     template: "toolsDescription/initProjectRules.md",
     invoke: () => initProjectRules(),
@@ -162,6 +208,15 @@ const TOOL_DEFINITIONS: ToolDefinition[] = [
     template: "toolsDescription/researchMode.md",
     schema: researchModeSchema.shape,
     invoke: (args) => researchMode(args as unknown as Parameters<typeof researchMode>[0]),
+  },
+  {
+    name: "queue_research_task",
+    template: "toolsDescription/queueResearchTask.md",
+    schema: queueResearchTaskSchema.shape,
+    invoke: (args) =>
+      queueResearchTask(
+        args as unknown as Parameters<typeof queueResearchTask>[0]
+      ),
   },
 ];
 

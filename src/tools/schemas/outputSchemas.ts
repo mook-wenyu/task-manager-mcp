@@ -13,6 +13,85 @@ const MarkdownPayloadSchema = z.object({
   errors: z.array(z.string()).optional(),
 });
 
+const SpecTemplateFileSchema = z.object({
+  path: z.string(),
+  format: z.enum(["markdown", "json", "graph", "yaml", "other"]).optional(),
+  description: z.string().optional(),
+  required: z.boolean().optional(),
+});
+
+const SpecTemplateSectionSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  placeholder: z.string().optional(),
+});
+
+const SpecTemplateSchema = z.object({
+  files: z.array(SpecTemplateFileSchema).min(1),
+  sections: z.array(SpecTemplateSectionSchema).optional(),
+  questions: z.array(z.string()).optional(),
+});
+
+const ConnectionReferenceSchema = z.object({
+  key: z.string(),
+  description: z.string().optional(),
+  transport: z.string().optional(),
+  required: z.boolean().optional(),
+});
+
+const RegisterConnectionDetailsSchema = z.object({
+  command: z.string(),
+  args: z.array(z.string()).optional(),
+  cwd: z.string().optional(),
+  transport: z.string().optional(),
+  description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  envFile: z.string().optional(),
+  env: z.record(z.string(), z.string()).optional(),
+  required: z.boolean().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+const ConnectionsStorageSchema = z.object({
+  version: z.number().int().nonnegative(),
+  updatedAt: z.string(),
+});
+
+const WorkflowOptionSchema = z.object({
+  name: z.string(),
+  description: z.string().optional(),
+});
+
+const WorkflowStepSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  description: z.string().optional(),
+  stage: z.string().optional(),
+});
+
+const WorkflowPatternSchema = z.object({
+  default: z.string(),
+  options: z.array(WorkflowOptionSchema).optional(),
+  suggestedSteps: z.array(WorkflowStepSchema).optional(),
+});
+
+const RoleTemplateSchema = z.object({
+  name: z.string(),
+  summary: z.string().optional(),
+  responsibilities: z.string().optional(),
+  prompt: z.string().optional(),
+  defaultTools: z.array(z.string()).optional(),
+});
+
+const OpenQuestionSchema = z.object({
+  id: z.string(),
+  question: z.string(),
+  required: z.boolean().optional(),
+  rationale: z.string().optional(),
+});
+
 const RelatedFileSchema = z.object({
   path: z.string(),
   type: z.nativeEnum(RelatedFileType),
@@ -49,6 +128,27 @@ const TaskCountsSchema = z.record(
   z.number().int().nonnegative()
 );
 
+const StageStatusSchema = z.enum(["pending", "in_progress", "completed"]);
+
+const StageProgressSchema = z.object({
+  stage: z.string(),
+  status: StageStatusSchema,
+  updatedAt: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+const WorkflowSummarySchema = z.object({
+  pattern: z.string(),
+  currentStepId: z.string().optional(),
+  steps: z
+    .array(
+      WorkflowStepSchema.extend({
+        status: StageStatusSchema.optional(),
+      })
+    )
+    .optional(),
+});
+
 const ComplexityAssessmentSchema = z.object({
   level: z.nativeEnum(TaskComplexityLevel),
   metrics: z.object({
@@ -80,6 +180,11 @@ export const PlanTaskStructuredSchema = z.object({
   payload: MarkdownPayloadSchema.extend({
     prompt: z.string(),
     requirements: z.string().optional(),
+    specTemplate: SpecTemplateSchema.optional(),
+    connections: z.array(ConnectionReferenceSchema).optional(),
+    workflowPattern: WorkflowPatternSchema.optional(),
+    roles: z.array(RoleTemplateSchema).optional(),
+    openQuestions: z.array(OpenQuestionSchema).optional(),
     existingTaskStats: z
       .object({
         total: z.number().int().nonnegative(),
@@ -130,6 +235,9 @@ export const ListTasksStructuredSchema = z.object({
     ]),
     counts: TaskCountsSchema,
     tasks: z.array(TaskDetailSchema).optional(),
+    connections: z.array(ConnectionReferenceSchema).optional(),
+    progress: z.array(StageProgressSchema).optional(),
+    roles: z.array(RoleTemplateSchema).optional(),
   }),
 });
 export const ExecuteTaskStructuredSchema = z.object({
@@ -143,6 +251,10 @@ export const ExecuteTaskStructuredSchema = z.object({
     complexity: ComplexityAssessmentSchema.optional(),
     dependencyTasks: z.array(TaskSummarySchema).optional(),
     relatedFilesSummary: z.string().optional(),
+    connections: z.array(ConnectionReferenceSchema).optional(),
+    workflow: WorkflowSummarySchema.optional(),
+    roles: z.array(RoleTemplateSchema).optional(),
+    stageProgress: z.array(StageProgressSchema).optional(),
   }),
 });
 
@@ -154,6 +266,7 @@ export const VerifyTaskStructuredSchema = z.object({
     score: z.number().min(0).max(100),
     statusAfter: z.nativeEnum(TaskStatus).optional(),
     statusChanged: z.boolean(),
+    stageUpdates: z.array(StageProgressSchema).optional(),
   }),
 });
 
@@ -264,6 +377,71 @@ export const MemoryReplayStructuredSchema = z.object({
       .optional(),
   }),
 });
+
+export const RegisterConnectionStructuredSchema = z.object({
+  kind: z.literal("config.registerConnection"),
+  payload: MarkdownPayloadSchema.extend({
+    key: z.string(),
+    isUpdate: z.boolean(),
+    totalConnections: z.number().int().nonnegative().optional(),
+    connection: RegisterConnectionDetailsSchema,
+    connectionsSummary: z.array(ConnectionReferenceSchema).optional(),
+    storage: ConnectionsStorageSchema.optional(),
+  }),
+});
+
+const WorkflowGeneratedFileSchema = z.object({
+  name: z.string(),
+  path: z.string(),
+  format: z.enum(["json", "markdown", "graph", "yaml", "other"]).optional(),
+});
+
+export const GenerateWorkflowStructuredSchema = z.object({
+  kind: z.literal("workflow.generate"),
+  payload: MarkdownPayloadSchema.extend({
+    taskId: z.string(),
+    pattern: z.string(),
+    directory: z.string(),
+    files: z.array(WorkflowGeneratedFileSchema).min(1),
+    workflow: z
+      .object({
+        pattern: z.string(),
+        summary: z.string().optional(),
+        steps: z.array(WorkflowStepSchema).optional(),
+      })
+      .optional(),
+  }),
+});
+
+const RolePromptFileSchema = z.object({
+  path: z.string(),
+  format: z.enum(["json", "markdown", "other"]).optional(),
+});
+
+export const RenderRolePromptStructuredSchema = z.object({
+  kind: z.literal("roles.renderPrompt"),
+  payload: MarkdownPayloadSchema.extend({
+    taskId: z.string(),
+    pattern: z.string().optional(),
+    file: RolePromptFileSchema.optional(),
+    roles: z.array(RoleTemplateSchema),
+  }),
+});
+
+const ResearchFileSchema = z.object({
+  path: z.string(),
+  format: z.enum(["json", "markdown", "other"]).optional(),
+});
+
+export const QueueResearchStructuredSchema = z.object({
+  kind: z.literal("research.queue"),
+  payload: MarkdownPayloadSchema.extend({
+    taskId: z.string(),
+    questions: z.array(OpenQuestionSchema).optional(),
+    files: z.array(ResearchFileSchema).optional(),
+    createdTaskIds: z.array(z.string()).optional(),
+  }),
+});
 export const TOOL_STRUCTURED_SCHEMAS = {
   plan_task: PlanTaskStructuredSchema,
   analyze_task: AnalyzeTaskStructuredSchema,
@@ -281,6 +459,10 @@ export const TOOL_STRUCTURED_SCHEMAS = {
   init_project_rules: InitProjectRulesStructuredSchema,
   research_mode: ResearchModeStructuredSchema,
   memory_replay: MemoryReplayStructuredSchema,
+  register_connection: RegisterConnectionStructuredSchema,
+  generate_workflow: GenerateWorkflowStructuredSchema,
+  render_role_prompt: RenderRolePromptStructuredSchema,
+  queue_research_task: QueueResearchStructuredSchema,
 } as const;
 
 type SchemaMap = typeof TOOL_STRUCTURED_SCHEMAS;

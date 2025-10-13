@@ -16,7 +16,15 @@
 
 {analysisResultTemplate}
 
+{connectionsTemplate}
+
+{workflowTemplate}
+
+{stageProgressTemplate}
+
 {dependencyTasksTemplate}
+
+{rolesTemplate}
 
 {relatedFilesSummaryTemplate}
 

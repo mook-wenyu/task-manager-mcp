@@ -13,12 +13,6 @@
 
 </div>
 
-## ⚠️ SDK 升级提示（2025-10-11）
-- 已完成 Model Context Protocol TypeScript SDK **v1.20.0** 迁移，全面采用 `server.registerTool`/`registerPrompt` 新接口。
-- 全部工具输出均提供 `structuredContent` 与 JSON Schema，对应契约定义集中在 `src/tools/schemas/outputSchemas.ts`。
-- 默认能力声明含 `tools`、`logging`；如需扩展 prompts/resources，请在 `src/index.ts` 中调用 `server.registerCapabilities`。
-- 回归命令：`npm run build`、`npm test -- --run`。
-
 ## 🚀 快速上手
 
 ### 环境需求
@@ -80,11 +74,29 @@ TEMPLATES_USE = "zh"
 - **记忆缓存**：内建 MemoryStore 自动裁剪短期记忆并支持 `memory_replay` 工具回放，便于长程任务复盘。
 - **交互补全**：`plan_task` 缺少约束时通过 elicitation 引导补充输入，规划信息更完整。
 - **极简交互**：摒弃内置 GUI/Task Viewer，专注 MCP 工具链与命令行工作流。
+- **阶段进度视图**：`execute_task` 与 `verify_task` 自动维护 `.shrimp/status/<taskId>/stages.json`，`list_tasks` 可一览 Spec→Plan→Implementation→Verification 的完成情况。
+- **调研澄清钩子**：`plan_task` 输出 `openQuestions`，配合 `queue_research_task` 生成 research.md/open-questions.json 与调研子任务，实现 Spec→Coding→Research 闭环。
+
+## 🧭 规范兼容性与取舍
+
+### MCP 规范版本
+- 默认遵循 2025-06-18 发布的 Model Context Protocol 官方规范，并在 `src/tools/schemas/outputSchemas.ts` 中对照最新字段保持契约同步。
+- 若官方规范升级，优先在增强分支验证兼容性，再更新主干文档与 schema；必要时在 `.codex/testing.md` 记录破坏性变更的回归策略。
+
+### 轻量能力取舍原则
+- 仅保留 Spec→Coding→Research 链路所需的工具集（如 `plan_task`、`generate_spec_template`、`register_connection`、`generate_workflow`、`render_role_prompt`、`queue_research_task`），舍弃 GUI、SSE、外置监控等重量组件，以保证部署与维护成本最小化。
+- 所有状态与模板统一落在 `<DATA_DIR>/.shrimp/`，配合阶段进度、角色提示与调研钩子，既覆盖最小闭环也避免重复实现外部平台已有能力。
+
+### 模块化连接策略
+- 通过 `register_connection`（见 `src/tools/config/registerConnection.ts`）集中登记外部 MCP 或 Spec Kit 等服务，记录别名后可在 `plan_task`、`list_tasks` 与 `execute_task` 输出中直接引用。
+- 连接信息仅保存必要的命令、参数与权限范围，确保仍符合轻量定位；需要扩展时先在 `.shrimp/config/servers.json` 沙箱验证，再决定是否入库。
+
 ## 📚 参考指引
 - [📝 Repository Guidelines](AGENTS.md)
 - 结构化输出契约：详见源码 `src/tools/schemas/outputSchemas.ts`
 - SDK v1.20.0 升级说明：参阅 `README.md` 本节与提交历史
 - 外部 MCP 连接器调研：可参考 `PLAN.md` 与 `RISKS.md` 中的摘要
+- 端到端示例脚本：位于 `<DATA_DIR>/.shrimp/examples/`
 
 ## 🎯 常见使用场景
 <details>
@@ -111,6 +123,15 @@ Continuous: "continuous mode"
 ```
 Research: "research: compare React vs Vue"
 Plan: "plan task: migrate component"
+```
+</details>
+
+<details>
+<summary><b>调研澄清</b></summary>
+
+```
+Plan: "plan task: audit external dependencies"
+Queue research: "queue research task {\"taskId\": \"<任务ID>\", \"questions\": [{\"question\": \"目标 API 是否提供错误码？\", \"required\": true}]}"
 ```
 </details>
 

@@ -25,6 +25,40 @@ interface ComplexityAssessment {
   recommendations?: string[];
 }
 
+interface ConnectionSummary {
+  key: string;
+  description?: string;
+  transport?: string;
+  required?: boolean;
+}
+
+interface WorkflowSummary {
+  pattern: string;
+  currentStepId?: string;
+  steps?: {
+    id: string;
+    title: string;
+    description?: string;
+    stage?: string;
+    status?: string;
+  }[];
+}
+
+interface RoleSummary {
+  name: string;
+  summary?: string;
+  responsibilities?: string;
+  prompt?: string;
+  defaultTools?: string[];
+}
+
+interface StageProgressEntry {
+  stage: string;
+  status: string;
+  updatedAt?: string;
+  notes?: string;
+}
+
 /**
  * executeTask prompt 参数接口
  * executeTask prompt parameter interface
@@ -34,6 +68,10 @@ export interface ExecuteTaskPromptParams {
   complexityAssessment?: ComplexityAssessment;
   relatedFilesSummary?: string;
   dependencyTasks?: Task[];
+  connections?: ConnectionSummary[];
+  workflow?: WorkflowSummary;
+  roles?: RoleSummary[];
+  stageProgress?: StageProgressEntry[];
 }
 
 /**
@@ -112,6 +150,31 @@ export async function getExecuteTaskPrompt(
     });
   }
 
+  const connectionsTemplate = await loadPromptFromTemplate(
+    "executeTask/connections.md"
+  );
+  let connectionsPrompt = "";
+  if (params.connections && params.connections.length > 0) {
+    const connectionLines = params.connections
+      .map((connection) => {
+        const details: string[] = [connection.key];
+        if (connection.transport) {
+          details.push(`传输：${connection.transport}`);
+        }
+        if (connection.description) {
+          details.push(connection.description);
+        }
+        if (connection.required) {
+          details.push("必需");
+        }
+        return `- ${details.join(" · ")}`;
+      })
+      .join("\\n");
+    connectionsPrompt = generatePrompt(connectionsTemplate, {
+      connections: connectionLines,
+    });
+  }
+
   const dependencyTasksTemplate = await loadPromptFromTemplate(
     "executeTask/dependencyTasks.md"
   );
@@ -168,6 +231,81 @@ export async function getExecuteTaskPrompt(
     });
   }
 
+  const workflowTemplate = await loadPromptFromTemplate(
+    "executeTask/workflow.md"
+  );
+  let workflowPrompt = "";
+  if (params.workflow) {
+    const stepsContent =
+      params.workflow.steps && params.workflow.steps.length > 0
+        ? params.workflow.steps
+            .map((step, index) => {
+              const details: string[] = [
+                `${index + 1}. ${step.title} (${step.id})`,
+              ];
+              if (step.stage) {
+                details.push(`阶段：${step.stage}`);
+              }
+              if (step.description) {
+                details.push(step.description);
+              }
+              return details.join(" · ");
+            })
+            .join("\n")
+        : "无可用步骤，请先生成工作流模板。";
+    workflowPrompt = generatePrompt(workflowTemplate, {
+      pattern: params.workflow.pattern,
+      currentStep: params.workflow.currentStepId ?? "未指定",
+      steps: stepsContent,
+    });
+  }
+
+  const rolesTemplate = await loadPromptFromTemplate("executeTask/roles.md");
+  let rolesPrompt = "";
+  if (params.roles && params.roles.length > 0) {
+    const rolesContent = params.roles
+      .map((role) => {
+        const details: string[] = [role.name];
+        if (role.summary) {
+          details.push(role.summary);
+        }
+        if (role.responsibilities) {
+          details.push(role.responsibilities);
+        }
+        if (role.defaultTools && role.defaultTools.length > 0) {
+          details.push(`默认工具：${role.defaultTools.join(", ")}`);
+        }
+        return `- ${details.join(" · ")}`;
+      })
+      .join("\n");
+    rolesPrompt = generatePrompt(rolesTemplate, {
+      roles: rolesContent,
+    });
+  }
+
+  const stageTemplate = await loadPromptFromTemplate(
+    "executeTask/stageProgress.md"
+  );
+  let stagePrompt = "";
+  if (params.stageProgress && params.stageProgress.length > 0) {
+    const stageLines = params.stageProgress
+      .map((stage) => {
+        const pieces: string[] = [`- ${stage.stage}`];
+        pieces.push(`状态：${stage.status}`);
+        if (stage.updatedAt) {
+          pieces.push(`更新：${stage.updatedAt}`);
+        }
+        if (stage.notes) {
+          pieces.push(stage.notes);
+        }
+        return pieces.join(" · ");
+      })
+      .join("\n");
+    stagePrompt = generatePrompt(stageTemplate, {
+      stages: stageLines,
+    });
+  }
+
   const indexTemplate = await loadPromptFromTemplate("executeTask/index.md");
   let prompt = generatePrompt(indexTemplate, {
     name: task.name,
@@ -177,9 +315,13 @@ export async function getExecuteTaskPrompt(
     implementationGuideTemplate: implementationGuidePrompt,
     verificationCriteriaTemplate: verificationCriteriaPrompt,
     analysisResultTemplate: analysisResultPrompt,
+    connectionsTemplate: connectionsPrompt,
     dependencyTasksTemplate: dependencyTasksPrompt,
     relatedFilesSummaryTemplate: relatedFilesSummaryPrompt,
     complexityTemplate: complexityPrompt,
+    workflowTemplate: workflowPrompt,
+    rolesTemplate: rolesPrompt,
+    stageProgressTemplate: stagePrompt,
   });
 
   // 如果任务有指定的代理，添加 sub-agent 命令

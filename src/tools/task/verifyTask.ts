@@ -7,6 +7,10 @@ import {
 } from "../../models/taskModel.js";
 import { TaskStatus } from "../../types/index.js";
 import { getVerifyTaskPrompt } from "../../prompts/index.js";
+import {
+  updateStageStatus,
+  loadStageStatus,
+} from "../status/updateStageStatus.js";
 
 // 检验任务工具
 // Task verification tool
@@ -51,6 +55,7 @@ export async function verifyTask({
       statusAfter?: TaskStatus;
       statusChanged?: boolean;
       isError?: boolean;
+      stageProgress?: Awaited<ReturnType<typeof loadStageStatus>>;
     } = {}
   ) => {
     const payload: Record<string, unknown> = {
@@ -66,6 +71,15 @@ export async function verifyTask({
 
     if (options.statusAfter) {
       payload.statusAfter = options.statusAfter;
+    }
+
+    if (options.stageProgress && options.stageProgress.length > 0) {
+      payload.stageUpdates = options.stageProgress.map((state) => ({
+        stage: state.stage,
+        status: state.status,
+        updatedAt: state.updatedAt,
+        notes: state.notes,
+      }));
     }
 
     return {
@@ -105,6 +119,7 @@ export async function verifyTask({
 
   let statusAfter: TaskStatus = task.status;
   let statusChanged = false;
+  let stageProgress = await loadStageStatus(taskId);
 
   if (score >= 80) {
     await updateTaskSummary(taskId, summary);
@@ -112,6 +127,17 @@ export async function verifyTask({
     statusAfter = TaskStatus.COMPLETED;
     statusChanged = true;
     task.status = statusAfter;
+
+    stageProgress = await updateStageStatus(taskId, [
+      { stage: "spec", status: "completed" },
+      { stage: "plan", status: "completed" },
+      { stage: "implementation", status: "completed" },
+      { stage: "verification", status: "completed", notes: summary },
+    ]);
+  } else {
+    stageProgress = await updateStageStatus(taskId, [
+      { stage: "verification", status: "in_progress", notes: summary },
+    ]);
   }
 
   const prompt = await getVerifyTaskPrompt({ task, score, summary });
@@ -120,5 +146,6 @@ export async function verifyTask({
     taskName: task.name,
     statusAfter,
     statusChanged,
+    stageProgress,
   });
 }

@@ -13,6 +13,18 @@ import {
   serializeComplexity,
   serializeTaskSummaries,
 } from "../utils/structuredContent.js";
+import {
+  listConnectionReferences,
+  type ConnectionReference,
+} from "../../utils/connectionStore.js";
+import {
+  updateStageStatus,
+  loadStageStatus,
+  type StageUpdateInput,
+  type StageState,
+} from "../status/updateStageStatus.js";
+import { loadWorkflowDefinition } from "../workflow/generateWorkflow.js";
+import { loadRoleTemplates } from "../roles/renderRolePrompt.js";
 
 // 运行任务工具
 // Execute task tool
@@ -40,6 +52,30 @@ export async function executeTask({
       dependencyTasks?: Task[];
       complexity?: TaskComplexityAssessment | null;
       relatedFilesSummary?: string;
+      connections?: ConnectionReference[];
+      workflow?:
+        | {
+            pattern: string;
+            currentStepId?: string;
+            steps?: {
+              id: string;
+              title: string;
+              description?: string;
+              stage?: string;
+              status?: "pending" | "in_progress" | "completed";
+            }[];
+          }
+        | undefined;
+      roles?:
+        | {
+            name: string;
+            summary?: string;
+            responsibilities?: string;
+            prompt?: string;
+            defaultTools?: string[];
+          }[]
+        | undefined;
+      stageProgress?: StageState[];
     } = {}
   ) => {
     const payload: Record<string, unknown> = {
@@ -74,6 +110,27 @@ export async function executeTask({
 
     if (options.relatedFilesSummary) {
       payload.relatedFilesSummary = options.relatedFilesSummary;
+    }
+
+    if (options.connections && options.connections.length > 0) {
+      payload.connections = options.connections;
+    }
+
+    if (options.workflow) {
+      payload.workflow = options.workflow;
+    }
+
+    if (options.roles && options.roles.length > 0) {
+      payload.roles = options.roles;
+    }
+
+    if (options.stageProgress && options.stageProgress.length > 0) {
+      payload.stageProgress = options.stageProgress.map((state) => ({
+        stage: state.stage,
+        status: state.status,
+        updatedAt: state.updatedAt,
+        notes: state.notes,
+      }));
     }
 
     return {
@@ -144,6 +201,18 @@ export async function executeTask({
     const statusAfter = TaskStatus.IN_PROGRESS;
     task.status = statusAfter;
 
+    const stageUpdates: StageUpdateInput[] = [
+      { stage: "implementation", status: "in_progress" },
+    ];
+
+    // 默认认为规格与计划阶段已经完成
+    stageUpdates.push(
+      { stage: "spec", status: "completed" },
+      { stage: "plan", status: "completed" }
+    );
+
+    await updateStageStatus(taskId, stageUpdates);
+
     // 评估任务复杂度
     // Assess task complexity
     const complexityResult = await assessTaskComplexity(taskId);
@@ -193,11 +262,37 @@ export async function executeTask({
 
     // 使用prompt生成器获取最终prompt
     // Use prompt generator to get final prompt
+    const connections = await listConnectionReferences();
+    const [workflowDefinition, roles] = await Promise.all([
+      loadWorkflowDefinition(taskId),
+      loadRoleTemplates(taskId),
+    ]);
+
+    const workflowSummary = workflowDefinition
+      ? {
+          pattern: workflowDefinition.pattern,
+          currentStepId: workflowDefinition.steps[0]?.id,
+          steps: workflowDefinition.steps.map((step) => ({
+            id: step.id,
+            title: step.title,
+            description: step.description,
+            stage: step.stage,
+            status: undefined,
+          })),
+        }
+      : undefined;
+
+    const stageStates = await loadStageStatus(taskId);
+
     const prompt = await getExecuteTaskPrompt({
       task,
       complexityAssessment,
       relatedFilesSummary,
       dependencyTasks,
+      connections,
+      workflow: workflowSummary,
+      roles: roles ?? undefined,
+      stageProgress: stageStates,
     });
 
     return buildResponse(prompt, {
@@ -207,6 +302,10 @@ export async function executeTask({
       dependencyTasks,
       complexity: complexityResult,
       relatedFilesSummary: relatedFilesSummary || undefined,
+      connections: connections.length > 0 ? connections : undefined,
+      workflow: workflowSummary,
+      roles: roles ?? undefined,
+      stageProgress: stageStates,
     });
   } catch (error) {
     const message = `运行任务时发生错误: ${

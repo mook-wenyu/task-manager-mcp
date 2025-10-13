@@ -4,6 +4,134 @@ import { TaskStatus, Task } from "../../types/index.js";
 import { getPlanTaskPrompt } from "../../prompts/index.js";
 import { getGlobalServer, getMemoryDir } from "../../utils/paths.js";
 import { createPlanTaskErrorResponse } from "./taskErrorHelpers.js";
+import { listConnectionReferences } from "../../utils/connectionStore.js";
+
+function getSpecTemplateBlueprint() {
+  return {
+    files: [
+      {
+        path: "<DATA_DIR>/specs/<taskId>/spec.md",
+        format: "markdown",
+        description: "规格正文骨架",
+        required: true,
+      },
+      {
+        path: "<DATA_DIR>/specs/<taskId>/spec.json",
+        format: "json",
+        description: "规格 JSON Schema 模板",
+      },
+      {
+        path: "<DATA_DIR>/specs/<taskId>/graph.json",
+        format: "json",
+        description: "规格任务图模板",
+      },
+    ],
+    sections: [
+      {
+        id: "overview",
+        title: "任务背景",
+        description: "说明业务上下文、问题与目标。",
+      },
+      {
+        id: "scope",
+        title: "范围界定",
+        description: "列出包含与排除的工作内容。",
+      },
+      {
+        id: "deliverables",
+        title: "交付物清单",
+        description: "约定代码、文档与演示等输出。",
+      },
+      {
+        id: "risks",
+        title: "风险与依赖",
+        description: "识别阻塞因素与待确认项。",
+      },
+    ],
+    questions: [
+      "有哪些输入或外部依赖需要澄清？",
+      "验收标准如何判定成功？",
+      "是否存在时程或资源约束？",
+    ],
+  };
+}
+
+function getWorkflowPatternBlueprint() {
+  return {
+    default: "serial",
+    options: [
+      {
+        name: "serial",
+        description: "规格→实现→验证顺序推进，适合单线程执行。",
+      },
+      {
+        name: "parallel",
+        description: "规格与调研并行，适用于多人协作同步推进。",
+      },
+      {
+        name: "evaluator",
+        description: "引入独立评估阶段，强调质量门禁与复审。",
+      },
+    ],
+    suggestedSteps: [
+      {
+        id: "spec",
+        title: "规格整理",
+        description: "收集上下文与范围，明确验收标准。",
+        stage: "spec",
+      },
+      {
+        id: "implementation",
+        title: "实现执行",
+        description: "按照规格小步迭代并记录测试结果。",
+        stage: "implementation",
+      },
+      {
+        id: "verification",
+        title: "验证归档",
+        description: "运行测试、记录验证与后续行动。",
+        stage: "verification",
+      },
+    ],
+  };
+}
+
+function getRoleBlueprint() {
+  return [
+    {
+      name: "规格主笔",
+      summary: "梳理需求、维护规格与开放问题列表。",
+      responsibilities:
+        "产出规格模板、同步风险与澄清项，保持上下文一致性。",
+      defaultTools: ["plan_task", "generate_spec_template"],
+    },
+    {
+      name: "实现执行者",
+      summary: "依据规格落地代码与文档变更，确保最小可行实现。",
+      responsibilities:
+        "小步提交、随改随测、更新实施记录与相关文档链接。",
+      defaultTools: ["execute_task"],
+    },
+    {
+      name: "验证审阅者",
+      summary: "复核实现质量、验证测试并记录验收结论。",
+      responsibilities:
+        "运行/审查测试、补充验收记录、给出后续改进建议。",
+      defaultTools: ["verify_task"],
+    },
+  ];
+}
+
+function getOpenQuestionsBlueprint(
+  specTemplate = getSpecTemplateBlueprint()
+) {
+  const questions = specTemplate.questions ?? [];
+  return questions.map((question, index) => ({
+    id: `oq-${index + 1}`,
+    question,
+    required: true,
+  }));
+}
 
 // 开始规划工具
 // Start planning tool
@@ -121,16 +249,81 @@ export async function planTask({
       memoryDir: MEMORY_DIR,
     });
 
+    const connectionReferences = await listConnectionReferences();
+    let promptWithConnections = prompt;
+    if (connectionReferences.length > 0) {
+      const connectionLines = connectionReferences
+        .map((connection) => {
+          const pieces = [`- ${connection.key}`];
+          if (connection.transport) {
+            pieces.push(`传输：${connection.transport}`);
+          }
+          if (connection.description) {
+            pieces.push(`说明：${connection.description}`);
+          }
+          if (connection.required) {
+            pieces.push("必需");
+          }
+          return pieces.join(" · ");
+        })
+        .join("\n");
+      promptWithConnections = `${prompt}\n\n## 可用连接\n${connectionLines}`;
+    }
+
+    const specBlueprint = getSpecTemplateBlueprint();
+    const workflowBlueprint = getWorkflowPatternBlueprint();
+    const roleBlueprint = getRoleBlueprint();
+    const openQuestionsBlueprint = getOpenQuestionsBlueprint(specBlueprint);
+
+    let enhancedPrompt = promptWithConnections;
+    const workflowLines = [
+      "## 推荐工作流",
+      `- 默认模式：${workflowBlueprint.default}`,
+      ...((workflowBlueprint.options ?? []).map(
+        (option) =>
+          `- ${option.name}${option.description ? `：${option.description}` : ""}`
+      ) || []),
+    ];
+
+    const roleLines = [
+      "## 预设角色分工",
+      ...roleBlueprint.map((role) => {
+        const summaryPieces = [role.name];
+        if (role.summary) {
+          summaryPieces.push(role.summary);
+        }
+        return `- ${summaryPieces.join(" · ")}`;
+      }),
+    ];
+
+    const openQuestionLines = [
+      "## 待澄清问题",
+      ...openQuestionsBlueprint.map(
+        (question, index) => `- Q${index + 1}：${question.question}`
+      ),
+    ];
+
+    enhancedPrompt = `${enhancedPrompt}\n\n${workflowLines.join(
+      "\n"
+    )}\n\n${roleLines.join("\n")}\n\n${openQuestionLines.join("\n")}`;
+
     const structuredContent = {
       kind: "taskManager.plan" as const,
       payload: {
-        markdown: prompt,
-        prompt,
+        markdown: enhancedPrompt,
+        prompt: enhancedPrompt,
+        specTemplate: specBlueprint,
+        workflowPattern: workflowBlueprint,
+        roles: roleBlueprint,
+        openQuestions: openQuestionsBlueprint,
         ...(finalRequirements
           ? { requirements: finalRequirements }
           : {}),
         ...(existingTasksReference && existingTaskStats
           ? { existingTaskStats }
+          : {}),
+        ...(connectionReferences.length > 0
+          ? { connections: connectionReferences }
           : {}),
       },
     };
@@ -139,7 +332,7 @@ export async function planTask({
       content: [
         {
           type: "text" as const,
-          text: prompt,
+          text: enhancedPrompt,
         },
       ],
       structuredContent,

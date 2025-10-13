@@ -3,3 +3,9 @@
 
 // researchMode
 export { researchMode, researchModeSchema } from "./researchMode.js";
+
+// queueResearchTask
+export {
+  queueResearchTask,
+  queueResearchTaskSchema,
+} from "./queueResearchTask.js";
