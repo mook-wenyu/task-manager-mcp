@@ -1,5 +1,5 @@
 {
-  "name": "mook-task-manager",
+  "name": "@mook_wy/mook-task-manager",
   "version": "1.1.0",
   "description": "Mook Task Manager MCP helps AI agents turn natural language into structured development plans with dependency tracking, reflection, and consistent execution flows.",
   "main": "dist/index.js",
